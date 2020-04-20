@@ -31562,6 +31562,9 @@ const Label = _styledComponents.default.div`
 	justify-content: center;
 	font-size: 16px;
 	user-select: none;
+	
+	background-color: #222;
+	color: #ccc;
 `;
 exports.Label = Label;
 },{"react":"../node_modules/react/index.js","styled-components":"../node_modules/styled-components/dist/styled-components.browser.esm.js"}],"js/components/Button.jsx":[function(require,module,exports) {
@@ -31583,11 +31586,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const Button = (0, _styledComponents.default)(_Label.Label)`
 	min-width: 100px;
 	cursor: pointer;
+	transition: color 0.5s, background-color 0.5s, transform: 0.2s;
 
 	&.active, :hover {
 		background-color: #ccc;
 		color: #222;
-		transition: color 0.5s, background-color 0.5s;
 	}
 	
 	&.locked {		
@@ -31595,12 +31598,495 @@ const Button = (0, _styledComponents.default)(_Label.Label)`
 		opacity: 0.5;
 	}
 
+	:active {
+		transform: scale(0.95);
+	}
+
 	&.tiny {
 		min-width: 48px;
 	}
 `;
 exports.Button = Button;
-},{"react":"../node_modules/react/index.js","styled-components":"../node_modules/styled-components/dist/styled-components.browser.esm.js","./Label.jsx":"js/components/Label.jsx"}],"js/components/Logger.jsx":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","styled-components":"../node_modules/styled-components/dist/styled-components.browser.esm.js","./Label.jsx":"js/components/Label.jsx"}],"../node_modules/react-infinite-scroll-component/dist/index.es.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+var _react = _interopRequireWildcard(require("react"));
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation. All rights reserved.
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use
+this file except in compliance with the License. You may obtain a copy of the
+License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
+WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache Version 2.0 License for specific language governing permissions
+and limitations under the License.
+***************************************************************************** */
+
+/* global Reflect, Promise */
+var extendStatics = function (d, b) {
+  extendStatics = Object.setPrototypeOf || {
+    __proto__: []
+  } instanceof Array && function (d, b) {
+    d.__proto__ = b;
+  } || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+  };
+
+  return extendStatics(d, b);
+};
+
+function __extends(d, b) {
+  extendStatics(d, b);
+
+  function __() {
+    this.constructor = d;
+  }
+
+  d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+}
+
+var __assign = function () {
+  __assign = Object.assign || function __assign(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+      s = arguments[i];
+
+      for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+    }
+
+    return t;
+  };
+
+  return __assign.apply(this, arguments);
+};
+/* eslint-disable no-undefined,no-param-reassign,no-shadow */
+
+/**
+ * Throttle execution of a function. Especially useful for rate limiting
+ * execution of handlers on events like resize and scroll.
+ *
+ * @param  {Number}    delay          A zero-or-greater delay in milliseconds. For event callbacks, values around 100 or 250 (or even higher) are most useful.
+ * @param  {Boolean}   [noTrailing]   Optional, defaults to false. If noTrailing is true, callback will only execute every `delay` milliseconds while the
+ *                                    throttled-function is being called. If noTrailing is false or unspecified, callback will be executed one final time
+ *                                    after the last throttled-function call. (After the throttled-function has not been called for `delay` milliseconds,
+ *                                    the internal counter is reset)
+ * @param  {Function}  callback       A function to be executed after delay milliseconds. The `this` context and all arguments are passed through, as-is,
+ *                                    to `callback` when the throttled-function is executed.
+ * @param  {Boolean}   [debounceMode] If `debounceMode` is true (at begin), schedule `clear` to execute after `delay` ms. If `debounceMode` is false (at end),
+ *                                    schedule `callback` to execute after `delay` ms.
+ *
+ * @return {Function}  A new, throttled, function.
+ */
+
+
+function throttle(delay, noTrailing, callback, debounceMode) {
+  /*
+   * After wrapper has stopped being called, this timeout ensures that
+   * `callback` is executed at the proper times in `throttle` and `end`
+   * debounce modes.
+   */
+  var timeoutID;
+  var cancelled = false; // Keep track of the last time `callback` was executed.
+
+  var lastExec = 0; // Function to clear existing timeout
+
+  function clearExistingTimeout() {
+    if (timeoutID) {
+      clearTimeout(timeoutID);
+    }
+  } // Function to cancel next exec
+
+
+  function cancel() {
+    clearExistingTimeout();
+    cancelled = true;
+  } // `noTrailing` defaults to falsy.
+
+
+  if (typeof noTrailing !== 'boolean') {
+    debounceMode = callback;
+    callback = noTrailing;
+    noTrailing = undefined;
+  }
+  /*
+   * The `wrapper` function encapsulates all of the throttling / debouncing
+   * functionality and when executed will limit the rate at which `callback`
+   * is executed.
+   */
+
+
+  function wrapper() {
+    var self = this;
+    var elapsed = Date.now() - lastExec;
+    var args = arguments;
+
+    if (cancelled) {
+      return;
+    } // Execute `callback` and update the `lastExec` timestamp.
+
+
+    function exec() {
+      lastExec = Date.now();
+      callback.apply(self, args);
+    }
+    /*
+     * If `debounceMode` is true (at begin) this is used to clear the flag
+     * to allow future `callback` executions.
+     */
+
+
+    function clear() {
+      timeoutID = undefined;
+    }
+
+    if (debounceMode && !timeoutID) {
+      /*
+       * Since `wrapper` is being called for the first time and
+       * `debounceMode` is true (at begin), execute `callback`.
+       */
+      exec();
+    }
+
+    clearExistingTimeout();
+
+    if (debounceMode === undefined && elapsed > delay) {
+      /*
+       * In throttle mode, if `delay` time has been exceeded, execute
+       * `callback`.
+       */
+      exec();
+    } else if (noTrailing !== true) {
+      /*
+       * In trailing throttle mode, since `delay` time has not been
+       * exceeded, schedule `callback` to execute `delay` ms after most
+       * recent execution.
+       *
+       * If `debounceMode` is true (at begin), schedule `clear` to execute
+       * after `delay` ms.
+       *
+       * If `debounceMode` is false (at end), schedule `callback` to
+       * execute after `delay` ms.
+       */
+      timeoutID = setTimeout(debounceMode ? clear : exec, debounceMode === undefined ? delay - elapsed : delay);
+    }
+  }
+
+  wrapper.cancel = cancel; // Return the wrapper function.
+
+  return wrapper;
+}
+
+var ThresholdUnits = {
+  Pixel: 'Pixel',
+  Percent: 'Percent'
+};
+var defaultThreshold = {
+  unit: ThresholdUnits.Percent,
+  value: 0.8
+};
+
+function parseThreshold(scrollThreshold) {
+  if (typeof scrollThreshold === 'number') {
+    return {
+      unit: ThresholdUnits.Percent,
+      value: scrollThreshold * 100
+    };
+  }
+
+  if (typeof scrollThreshold === 'string') {
+    if (scrollThreshold.match(/^(\d*(\.\d+)?)px$/)) {
+      return {
+        unit: ThresholdUnits.Pixel,
+        value: parseFloat(scrollThreshold)
+      };
+    }
+
+    if (scrollThreshold.match(/^(\d*(\.\d+)?)%$/)) {
+      return {
+        unit: ThresholdUnits.Percent,
+        value: parseFloat(scrollThreshold)
+      };
+    }
+
+    console.warn('scrollThreshold format is invalid. Valid formats: "120px", "50%"...');
+    return defaultThreshold;
+  }
+
+  console.warn('scrollThreshold should be string or number');
+  return defaultThreshold;
+}
+
+var InfiniteScroll =
+/** @class */
+function (_super) {
+  __extends(InfiniteScroll, _super);
+
+  function InfiniteScroll(props) {
+    var _this = _super.call(this, props) || this;
+
+    _this.lastScrollTop = 0;
+    _this.actionTriggered = false; // variables to keep track of pull down behaviour
+
+    _this.startY = 0;
+    _this.currentY = 0;
+    _this.dragging = false; // will be populated in componentDidMount
+    // based on the height of the pull down element
+
+    _this.maxPullDownDistance = 0;
+
+    _this.getScrollableTarget = function () {
+      if (_this.props.scrollableTarget instanceof HTMLElement) return _this.props.scrollableTarget;
+
+      if (typeof _this.props.scrollableTarget === 'string') {
+        return document.getElementById(_this.props.scrollableTarget);
+      }
+
+      if (_this.props.scrollableTarget === null) {
+        console.warn("You are trying to pass scrollableTarget but it is null. This might\n        happen because the element may not have been added to DOM yet.\n        See https://github.com/ankeetmaini/react-infinite-scroll-component/issues/59 for more info.\n      ");
+      }
+
+      return null;
+    };
+
+    _this.onStart = function (evt) {
+      if (_this.lastScrollTop) return;
+      _this.dragging = true;
+
+      if (evt instanceof MouseEvent) {
+        _this.startY = evt.pageY;
+      } else if (evt instanceof TouchEvent) {
+        _this.startY = evt.touches[0].pageY;
+      }
+
+      _this.currentY = _this.startY;
+
+      if (_this._infScroll) {
+        _this._infScroll.style.willChange = 'transform';
+        _this._infScroll.style.transition = "transform 0.2s cubic-bezier(0,0,0.31,1)";
+      }
+    };
+
+    _this.onMove = function (evt) {
+      if (!_this.dragging) return;
+
+      if (evt instanceof MouseEvent) {
+        _this.currentY = evt.pageY;
+      } else if (evt instanceof TouchEvent) {
+        _this.currentY = evt.touches[0].pageY;
+      } // user is scrolling down to up
+
+
+      if (_this.currentY < _this.startY) return;
+
+      if (_this.currentY - _this.startY >= Number(_this.props.pullDownToRefreshThreshold)) {
+        _this.setState({
+          pullToRefreshThresholdBreached: true
+        });
+      } // so you can drag upto 1.5 times of the maxPullDownDistance
+
+
+      if (_this.currentY - _this.startY > _this.maxPullDownDistance * 1.5) return;
+
+      if (_this._infScroll) {
+        _this._infScroll.style.overflow = 'visible';
+        _this._infScroll.style.transform = "translate3d(0px, " + (_this.currentY - _this.startY) + "px, 0px)";
+      }
+    };
+
+    _this.onEnd = function () {
+      _this.startY = 0;
+      _this.currentY = 0;
+      _this.dragging = false;
+
+      if (_this.state.pullToRefreshThresholdBreached) {
+        _this.props.refreshFunction && _this.props.refreshFunction();
+      }
+
+      requestAnimationFrame(function () {
+        // this._infScroll
+        if (_this._infScroll) {
+          _this._infScroll.style.overflow = 'auto';
+          _this._infScroll.style.transform = 'none';
+          _this._infScroll.style.willChange = 'none';
+        }
+      });
+    };
+
+    _this.onScrollListener = function (event) {
+      if (typeof _this.props.onScroll === 'function') {
+        // Execute this callback in next tick so that it does not affect the
+        // functionality of the library.
+        setTimeout(function () {
+          return _this.props.onScroll && _this.props.onScroll(event);
+        }, 0);
+      }
+
+      var target = _this.props.height || _this._scrollableNode ? event.target : document.documentElement.scrollTop ? document.documentElement : document.body; // return immediately if the action has already been triggered,
+      // prevents multiple triggers.
+
+      if (_this.actionTriggered) return;
+
+      var atBottom = _this.isElementAtBottom(target, _this.props.scrollThreshold); // call the `next` function in the props to trigger the next data fetch
+
+
+      if (atBottom && _this.props.hasMore) {
+        _this.actionTriggered = true;
+
+        _this.setState({
+          showLoader: true
+        });
+
+        _this.props.next && _this.props.next();
+      }
+
+      _this.lastScrollTop = target.scrollTop;
+    };
+
+    _this.state = {
+      showLoader: false,
+      pullToRefreshThresholdBreached: false
+    };
+    _this.throttledOnScrollListener = throttle(150, _this.onScrollListener).bind(_this);
+    _this.onStart = _this.onStart.bind(_this);
+    _this.onMove = _this.onMove.bind(_this);
+    _this.onEnd = _this.onEnd.bind(_this);
+    return _this;
+  }
+
+  InfiniteScroll.prototype.componentDidMount = function () {
+    if (typeof this.props.dataLength === 'undefined') {
+      throw new Error("mandatory prop \"dataLength\" is missing. The prop is needed" + " when loading more content. Check README.md for usage");
+    }
+
+    this._scrollableNode = this.getScrollableTarget();
+    this.el = this.props.height ? this._infScroll : this._scrollableNode || window;
+
+    if (this.el) {
+      this.el.addEventListener('scroll', this.throttledOnScrollListener);
+    }
+
+    if (typeof this.props.initialScrollY === 'number' && this.el && this.el instanceof HTMLElement && this.el.scrollHeight > this.props.initialScrollY) {
+      this.el.scrollTo(0, this.props.initialScrollY);
+    }
+
+    if (this.props.pullDownToRefresh && this.el) {
+      this.el.addEventListener('touchstart', this.onStart);
+      this.el.addEventListener('touchmove', this.onMove);
+      this.el.addEventListener('touchend', this.onEnd);
+      this.el.addEventListener('mousedown', this.onStart);
+      this.el.addEventListener('mousemove', this.onMove);
+      this.el.addEventListener('mouseup', this.onEnd); // get BCR of pullDown element to position it above
+
+      this.maxPullDownDistance = this._pullDown && this._pullDown.firstChild && this._pullDown.firstChild.getBoundingClientRect().height || 0;
+      this.forceUpdate();
+
+      if (typeof this.props.refreshFunction !== 'function') {
+        throw new Error("Mandatory prop \"refreshFunction\" missing.\n          Pull Down To Refresh functionality will not work\n          as expected. Check README.md for usage'");
+      }
+    }
+  };
+
+  InfiniteScroll.prototype.componentWillUnmount = function () {
+    if (this.el) {
+      this.el.removeEventListener('scroll', this.throttledOnScrollListener);
+
+      if (this.props.pullDownToRefresh) {
+        this.el.removeEventListener('touchstart', this.onStart);
+        this.el.removeEventListener('touchmove', this.onMove);
+        this.el.removeEventListener('touchend', this.onEnd);
+        this.el.removeEventListener('mousedown', this.onStart);
+        this.el.removeEventListener('mousemove', this.onMove);
+        this.el.removeEventListener('mouseup', this.onEnd);
+      }
+    }
+  };
+
+  InfiniteScroll.prototype.UNSAFE_componentWillReceiveProps = function (props) {
+    // do nothing when dataLength and key are unchanged
+    if (this.props.key === props.key && this.props.dataLength === props.dataLength) return;
+    this.actionTriggered = false; // update state when new data was sent in
+
+    this.setState({
+      showLoader: false,
+      pullToRefreshThresholdBreached: false
+    });
+  };
+
+  InfiniteScroll.prototype.isElementAtBottom = function (target, scrollThreshold) {
+    if (scrollThreshold === void 0) {
+      scrollThreshold = 0.8;
+    }
+
+    var clientHeight = target === document.body || target === document.documentElement ? window.screen.availHeight : target.clientHeight;
+    var threshold = parseThreshold(scrollThreshold);
+
+    if (threshold.unit === ThresholdUnits.Pixel) {
+      return target.scrollTop + clientHeight >= target.scrollHeight - threshold.value;
+    }
+
+    return target.scrollTop + clientHeight >= threshold.value / 100 * target.scrollHeight;
+  };
+
+  InfiniteScroll.prototype.render = function () {
+    var _this = this;
+
+    var style = __assign({
+      height: this.props.height || 'auto',
+      overflow: 'auto',
+      WebkitOverflowScrolling: 'touch'
+    }, this.props.style);
+
+    var hasChildren = this.props.hasChildren || !!(this.props.children && this.props.children instanceof Array && this.props.children.length); // because heighted infiniteScroll visualy breaks
+    // on drag down as overflow becomes visible
+
+    var outerDivStyle = this.props.pullDownToRefresh && this.props.height ? {
+      overflow: 'auto'
+    } : {};
+    return _react.default.createElement("div", {
+      style: outerDivStyle,
+      className: "infinite-scroll-component__outerdiv"
+    }, _react.default.createElement("div", {
+      className: "infinite-scroll-component " + (this.props.className || ''),
+      ref: function (infScroll) {
+        return _this._infScroll = infScroll;
+      },
+      style: style
+    }, this.props.pullDownToRefresh && _react.default.createElement("div", {
+      style: {
+        position: 'relative'
+      },
+      ref: function (pullDown) {
+        return _this._pullDown = pullDown;
+      }
+    }, _react.default.createElement("div", {
+      style: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: -1 * this.maxPullDownDistance
+      }
+    }, this.state.pullToRefreshThresholdBreached ? this.props.releaseToRefreshContent : this.props.pullDownToRefreshContent)), this.props.children, !this.state.showLoader && !hasChildren && this.props.hasMore && this.props.loader, this.state.showLoader && this.props.hasMore && this.props.loader, !this.props.hasMore && this.props.endMessage));
+  };
+
+  return InfiniteScroll;
+}(_react.Component);
+
+var _default = InfiniteScroll;
+exports.default = _default;
+},{"react":"../node_modules/react/index.js"}],"js/components/Logger.jsx":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -31609,6 +32095,8 @@ Object.defineProperty(exports, "__esModule", {
 exports.Logger = void 0;
 
 var _react = _interopRequireWildcard(require("react"));
+
+var _reactInfiniteScrollComponent = _interopRequireDefault(require("react-infinite-scroll-component"));
 
 var _Button = require("./Button.jsx");
 
@@ -31693,7 +32181,32 @@ class Logger extends _react.Component {
       logTypes: [MODES.Runtime],
       isCapture: false
     };
+    this._devApi = props.devApi;
     this._logType = 0;
+  }
+  /**
+   * emited message from devApi or root service
+   * @param {string} type
+   */
+
+
+  onEmit(type, data) {}
+  /**
+   * Called if changed
+   * @param {IDevToolAPI} devApi
+   */
+
+
+  onInit(devApi) {
+    this._devApi = devApi;
+  } // emited when devApi is detached
+
+
+  onDetach() {
+    this._devApi = undefined;
+    this.setState({
+      isCapture: false
+    });
   }
 
   onCapture() {
@@ -31743,7 +32256,7 @@ class Logger extends _react.Component {
 }
 
 exports.Logger = Logger;
-},{"react":"../node_modules/react/index.js","./Button.jsx":"js/components/Button.jsx","./Label.jsx":"js/components/Label.jsx","styled-components":"../node_modules/styled-components/dist/styled-components.browser.esm.js"}],"js/components/Panel.jsx":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","react-infinite-scroll-component":"../node_modules/react-infinite-scroll-component/dist/index.es.js","./Button.jsx":"js/components/Button.jsx","./Label.jsx":"js/components/Label.jsx","styled-components":"../node_modules/styled-components/dist/styled-components.browser.esm.js"}],"js/components/Panel.jsx":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -31757,6 +32270,10 @@ var _Button = require("./Button.jsx");
 
 var _Logger = require("./Logger.jsx");
 
+var _styledComponents = _interopRequireDefault(require("styled-components"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
@@ -31764,14 +32281,76 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 const _TABS = {
   Logger: _Logger.Logger
 };
+const Overlay = _styledComponents.default.div`
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(22, 22, 22, 0.9);
+	position: fixed;
+	z-index: 100;
+	display: flex;
+`;
+const Box = _styledComponents.default.div`
+	min-width: 100px;
+	margin: auto;
+	color: #ccc;
+	font-size: 28px;
+`;
 
 class Panel extends _react.Component {
   constructor(props) {
     super(props);
     this.state = {
       currentTab: Object.keys(_TABS)[0],
-      connected: false
+      attached: false
     };
+    /**
+     * @type {IDevToolAPI}
+     */
+
+    this._devApi = undefined;
+    this.activeTabRef = (0, _react.createRef)();
+    window.PANEL_API = {
+      init: this.onInit.bind(this),
+      detach: this.onDetach.bind(this),
+      emit: this.onEmit.bind(this)
+    };
+  }
+  /**
+   * emited from provider
+   * @param {string} type
+   */
+
+
+  onEmit(type, data) {
+    const tab = this.activeTabRef.current;
+    tab.onEmit && tab.onEmit(type, data);
+  }
+  /**
+   *
+   * @param {IDevToolAPI} devApi
+   */
+
+
+  onInit(devApi) {
+    this._devApi = devApi;
+    const tab = this.activeTabRef.current;
+    tab.onInit && tab.onInit(this._devApi);
+
+    this._devApi.getStatus().then(status => {
+      this.setState({
+        attached: status
+      });
+    });
+  } // emited from dev provider
+
+
+  onDetach() {
+    const tab = this.activeTabRef.current;
+    tab.onDetach && tab.onDetach();
+    this.setState({
+      attached: false
+    });
   }
 
   switchTab(name) {
@@ -31787,9 +32366,7 @@ class Panel extends _react.Component {
       className: this.state.currentTab === name ? "active" : ""
     }, name));
     const ActiveTab = _TABS[this.state.currentTab];
-    return _react.default.createElement("div", {
-      className: "navbar-fixed"
-    }, _react.default.createElement("nav", {
+    return _react.default.createElement(_react.Fragment, null, _react.default.createElement("nav", {
       className: "main"
     }, _react.default.createElement("div", {
       className: "nav-wrap"
@@ -31797,14 +32374,17 @@ class Panel extends _react.Component {
       className: "logo"
     }), buttons), _react.default.createElement("div", {
       id: "online_status",
-      className: this.state.connected ? "green" : "red"
-    }, this.state.connected ? "CONNECTED" : "NOT CONNECTED")), _react.default.createElement(ActiveTab, null));
+      className: this.state.attached ? "green" : "red"
+    }, this.state.attached ? "CONNECTED" : "NOT CONNECTED")), _react.default.createElement(ActiveTab, {
+      ref: this.activeTabRef,
+      devApi: this._devApi
+    }), this.state.attached || _react.default.createElement(Overlay, null, _react.default.createElement(Box, null, _react.default.createElement("div", null, "AWAY Debug API not found or detached!"), _react.default.createElement(_Button.Button, null, "Try Reconnect"))));
   }
 
 }
 
 exports.Panel = Panel;
-},{"react":"../node_modules/react/index.js","./Button.jsx":"js/components/Button.jsx","./Logger.jsx":"js/components/Logger.jsx"}],"css/style.css":[function(require,module,exports) {
+},{"react":"../node_modules/react/index.js","./Button.jsx":"js/components/Button.jsx","./Logger.jsx":"js/components/Logger.jsx","styled-components":"../node_modules/styled-components/dist/styled-components.browser.esm.js"}],"css/style.css":[function(require,module,exports) {
 
 },{"./..\\..\\assets\\gfx\\icon128.png":[["icon128.2e3ed1aa.png","../assets/gfx/icon128.png"],"../assets/gfx/icon128.png"]}],"js/panel.p.js":[function(require,module,exports) {
 "use strict";
@@ -31818,6 +32398,15 @@ var _Panel = require("./components/Panel.jsx");
 require("./../css/style.css");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * @type {IPanelAPI}
+ */
+window.PANEL_API = {
+  init: undefined,
+  detach: undefined,
+  emit: undefined
+};
 
 _reactDom.default.render(_react.default.createElement(_Panel.Panel, null), document.querySelector('#app'));
 },{"react":"../node_modules/react/index.js","react-dom":"../node_modules/react-dom/index.js","./components/Panel.jsx":"js/components/Panel.jsx","./../css/style.css":"css/style.css"}]},{},["js/panel.p.js"], null)
