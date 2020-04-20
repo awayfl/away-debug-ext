@@ -39,6 +39,7 @@
 		"parcel": "^1.12.4",
 		"react": "^16.13.1",
 		"react-dom": "^16.13.1",
+		"react-infinite-scroll-component": "^5.0.4",
 		"rimraf": "^3.0.2",
 		"styled-components": "^5.1.0"
 	},

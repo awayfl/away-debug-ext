@@ -3,7 +3,7 @@ declare interface Window {
 }
 
 declare interface IDevToolAPI {
-	async getStatus(): Promise<boolean>;
+	getStatus(): Promise<boolean>;
 	captureLogs(options: {type: number, limit: number}, callbakc: (data: string[])=> void): void;
 	stopCapture();
 }

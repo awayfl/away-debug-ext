@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import InfiniteScroll from 'react-infinite-scroll-component';
 import { Button } from "./Button.jsx";
 import { Label } from "./Label.jsx";
 import styled from "styled-components";
@@ -84,7 +85,30 @@ export class Logger extends Component {
 			isCapture: false,
 		};
 
+		this._devApi = props.devApi;
 		this._logType = 0;
+	}
+
+	/**
+	 * emited message from devApi or root service
+	 * @param {string} type
+	 */
+	onEmit(type, data) {}
+
+	/**
+	 * Called if changed
+	 * @param {IDevToolAPI} devApi
+	 */
+	onInit(devApi) {
+		this._devApi = devApi;
+	}
+
+	// emited when devApi is detached
+	onDetach() {
+		this._devApi = undefined;
+		this.setState({
+			isCapture: false,
+		});
 	}
 
 	onCapture() {
