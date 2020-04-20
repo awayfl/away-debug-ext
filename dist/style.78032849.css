@@ -1,0 +1,182 @@
+:root {
+	--root-nav: 48px;
+	--nav: 36px;
+}
+
+div {
+	box-sizing: border-box;
+}
+
+html,
+body,
+.navbar-fixed {
+	width: 100vw;
+	height: 100vh;
+	padding: 0;
+	margin: 0;
+	background: none;
+	font-family: "Roboto Slab", serif;
+	overflow: hidden;
+}
+
+nav,
+.nav-wrap {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	height: 100%;
+}
+
+nav {
+	height: var(--nav);
+	background: #222;
+	flex-direction: row;
+	color: #ccc;
+}
+
+nav.main {
+	height: var(--root-nav);
+	z-index: 2;
+	position: relative;
+	border-bottom: 2px solid #444;
+	justify-content: space-between;
+}
+
+nav.sub {
+	box-shadow: 0px 0px 4px 4px black;
+}
+
+.logo {
+	background-image: url("/icon128.2e3ed1aa.png");
+	background-size: contain;
+	width: 36px;
+	height: 36px;
+	margin: 0 0.5em;
+}
+
+.separator {
+	width: 2px;
+	height: 80%;
+	background-color: #ccc;
+}
+
+.btn,
+.label {
+	height: 24px;
+	margin: 4px;
+	border-radius: 4px;
+	display: flex;
+	justify-content: center;
+	font-size: 16px;
+	user-select: none;
+}
+
+.left {
+	justify-self: flex-start;
+}
+
+.right {
+	justify-self: flex-end;
+}
+
+.btn {
+	min-width: 100px;
+	cursor: pointer;
+}
+
+.btn:hover,
+.btn.active {
+	background-color: #ccc;
+	color: #222;
+	transition: color 0.5s, background-color 0.5s;
+}
+
+.isOn,
+.isOff {
+	display: none;
+}
+
+.active > .isOn {
+	display: initial;
+}
+
+:not(.active) > .isOff {
+	display: initial;
+}
+
+.red {
+	color: #cc2222;
+}
+
+.green {
+	color: #22cc22;
+}
+
+.btn.locked {
+	pointer-events: none;
+	opacity: 0.5;
+}
+
+.material-icons {
+	margin-left: 0.5em;
+}
+
+.btn.active > .blink {
+	animation: blink-anim 1s infinite alternate;
+}
+
+section.tab {
+	display: none;
+}
+
+section.tab.active {
+	display: block;
+}
+
+#online_status {
+	font-weight: bolder;
+	padding: 0.5em;
+	word-wrap: normal;
+}
+
+.list {
+	width: 100%;
+	height: calc(100vh - var(--root-nav) - var(--nav));
+	display: flex;
+	flex-direction: column;
+	font-family: MONOSPACE;
+	overflow: auto;
+}
+
+.list > .item {
+	display: block;
+	height: 20px;
+	border-bottom: 1px solid #444;
+	line-height: 20px;
+	color: #ccc;
+	font-size: 12px;
+}
+
+.item > .ticker {
+	margin: 0 1em 0 0.25em;
+	padding: 0 0.25em;
+	display: inline-block;
+	user-select: none;
+	font-style: italic;
+	font-weight: bolder;
+	background-color: #ccc;
+	border-radius: 8px;
+	color: #222;
+}
+
+@keyframes blink-anim {
+	0% {
+		color: #ccc;
+	}
+	100% {
+		color: #cc2222;
+	}
+}
+
+
+/*# sourceMappingURL=/style.78032849.css.map */
