@@ -117,7 +117,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"rHfI":[function(require,module,exports) {
+})({"js/lib/API.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -228,7 +228,7 @@ class APIServer {
 }
 
 exports.APIServer = APIServer;
-},{}],"JlD7":[function(require,module,exports) {
+},{}],"js/background.js":[function(require,module,exports) {
 "use strict";
 
 var _API = require("./lib/API.js");
@@ -295,5 +295,5 @@ chrome.runtime.onConnect.addListener(port => {
     port.onMessage.removeListener(onMessage);
   });
 });
-},{"./lib/API.js":"rHfI"}]},{},["JlD7"], null)
+},{"./lib/API.js":"js/lib/API.js"}]},{},["js/background.js"], null)
 //# sourceMappingURL=/js/background.js.map

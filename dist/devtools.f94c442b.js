@@ -117,7 +117,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"rHfI":[function(require,module,exports) {
+})({"js/lib/API.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -228,7 +228,7 @@ class APIServer {
 }
 
 exports.APIServer = APIServer;
-},{}],"RWL8":[function(require,module,exports) {
+},{}],"js/devtools.js":[function(require,module,exports) {
 "use strict";
 
 var _API = require("./lib/API.js");
@@ -340,5 +340,5 @@ chrome.devtools.panels.create("AwayFL", "/gfx/icon16.png", "panel.html", panel =
   panel.onShown.addListener(_onPanelShow);
   panel.onHidden.addListener(_onPanelHide);
 });
-},{"./lib/API.js":"rHfI"}]},{},["RWL8"], null)
+},{"./lib/API.js":"js/lib/API.js"}]},{},["js/devtools.js"], null)
 //# sourceMappingURL=/devtools.f94c442b.js.map

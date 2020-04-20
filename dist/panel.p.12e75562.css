@@ -117,10 +117,6 @@ nav.sub {
 	opacity: 0.5;
 }
 
-.material-icons {
-	margin-left: 0.5em;
-}
-
 .btn.active > .blink {
 	animation: blink-anim 1s infinite alternate;
 }
@@ -179,4 +175,4 @@ section.tab.active {
 }
 
 
-/*# sourceMappingURL=/style.78032849.css.map */
+/*# sourceMappingURL=/panel.p.12e75562.css.map */

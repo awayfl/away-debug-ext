@@ -117,7 +117,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   }
 
   return newRequire;
-})({"QBxT":[function(require,module,exports) {
+})({"js/page-api.js":[function(require,module,exports) {
 (function () {
   class APIServer {
     constructor() {
@@ -214,7 +214,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
    */
 
   let AWAY_DEBUG = undefined;
-  let _limit = 500_000;
+  let _limit = 500000;
   let _total = 0;
   let _logBlob = [];
   let _logBathedSender = undefined;
@@ -307,7 +307,7 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   api.onFlow("test", testOnDebug);
   api.onFlow("log-init", logInit);
-  api.onFlow("log-stop", logStop);
+  api.onFlow("log-stop", logStop); ///
 })();
-},{}]},{},["QBxT"], null)
+},{}]},{},["js/page-api.js"], null)
 //# sourceMappingURL=/js/page-api.js.map
