@@ -47,7 +47,7 @@ nav.sub {
 }
 
 .logo {
-	background-image: url("/gfx/icon128.png");
+	background-image: url("../../gfx/icon128.png");
 	background-size: contain;
 	width: 36px;
 	height: 36px;
