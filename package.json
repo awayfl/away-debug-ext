@@ -1,36 +1,50 @@
 {
-  "name": "away-debug-ext",
-  "version": "1.0.0",
-  "description": "AWAY Debug tools for Chrome",
-  "main": "index.js",
-  "scripts": {
-    "prebuild": "rimraf dist",
-    "build": "parcel build src/panel.html src/devtools.html src/js/background.js src/js/page-api.js --no-content-hash --no-minify",
-    "watch": "npm run build && parcel watch src/panel.html src/page-api.js --no-content-hash --no-minify"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/eXponenta/away-debug-ext.git"
-  },
-  "author": "",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/eXponenta/away-debug-ext/issues"
-  },
-  "homepage": "https://github.com/eXponenta/away-debug-ext#readme",
-  "browserslist": [
-    "last 1 Chrome version"
-  ],
-  "staticFiles": {
-    "staticPath": [
-      "assets"
-    ]
-  },
-  "dependencies": {
-    "parcel": "^1.12.4",
-    "rimraf": "^3.0.2"
-  },
-  "devDependencies": {
-    "parcel-plugin-static-files-copy": "^2.3.1"
-  }
+	"name": "away-debug-ext",
+	"version": "1.0.0",
+	"description": "AWAY Debug tools for Chrome",
+	"main": "index.js",
+	"scripts": {
+		"prebuild": "rimraf dist",
+		"prewatch": "rimraf dist",
+		"build": "parcel build src/panel.html src/devtools.html src/js/background.js src/js/page-api.js src/js/content.js --no-content-hash --no-minify",
+		"watch": "parcel watch src/panel.html src/devtools.html src/js/background.js src/js/page-api.js src/js/content.js --no-hmr"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/eXponenta/away-debug-ext.git"
+	},
+	"author": "",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/eXponenta/away-debug-ext/issues"
+	},
+	"homepage": "https://github.com/eXponenta/away-debug-ext#readme",
+	"browserslist": [
+		"last 1 Chrome version"
+	],
+	"staticFiles": {
+		"staticPath": [
+			"assets"
+		]
+	},
+	"babel": {
+		"plugins": [
+			[
+				"transform-react-jsx"
+			]
+		]
+	},
+	"dependencies": {
+		"json5": "^2.1.3",
+		"parcel": "^1.12.4",
+		"react": "^16.13.1",
+		"react-dom": "^16.13.1",
+		"rimraf": "^3.0.2",
+		"styled-components": "^5.1.0"
+	},
+	"devDependencies": {
+		"babel-core": "^6.26.3",
+		"babel-plugin-transform-react-jsx": "^6.24.1",
+		"parcel-plugin-static-files-copy": "^2.3.1"
+	}
 }

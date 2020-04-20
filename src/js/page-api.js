@@ -93,7 +93,7 @@
 	 * @type {IAwayDebug}
 	 */
 	let AWAY_DEBUG = undefined;
-	let _limit = 500_000;
+	let _limit = 500000;
 	let _total = 0;
 	let _logBlob = [];
 	let _logBathedSender = undefined;
@@ -178,4 +178,5 @@
 	api.onFlow("test", testOnDebug);
 	api.onFlow("log-init", logInit);
 	api.onFlow("log-stop", logStop);
+	///
 })();

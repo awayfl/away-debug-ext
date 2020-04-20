@@ -2,8 +2,8 @@
   "manifest_version": 2,
   "name": "AWAYFL Debug extension",
   "description": "AwayFL extension for debug AVM/AVM2 executions!",
-  "version": "0.1.0",
-  "devtools_page": "dist/devtools.html",
+  "version": "0.1.1",
+  "devtools_page": "devtools.html",
   "icons": {
     "16": "gfx/icon16.png",
     "48": "gfx/icon48.png",

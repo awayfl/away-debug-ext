@@ -117,10 +117,6 @@ nav.sub {
 	opacity: 0.5;
 }
 
-.material-icons {
-	margin-left: 0.5em;
-}
-
 .btn.active > .blink {
 	animation: blink-anim 1s infinite alternate;
 }
