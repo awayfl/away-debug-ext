@@ -11,10 +11,10 @@
   },
   "permissions": ["tabs", "*://localhost/*"],
   "background": {
-    "page": "dist/background.html",
+    "scripts": ["js/background.js"],
     "persistent": false
   },
-  "web_accessible_resources": ["dist/js/page-api.js", "dist/js/content.js"],
+  "web_accessible_resources": ["js/page-api.js", "js/content.js"],
   "externally_connectable": {
     "matches": ["*://localhost/*"]
   }
