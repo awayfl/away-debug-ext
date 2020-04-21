@@ -10,6 +10,8 @@ declare interface IDevToolAPI {
 	startCaptureLogs(options: {type: number, limit: number}, callbakc: (data: string[])=> void): Promise<boolean>;
 	stopCaptureLogs(): void;
 	tryConnect(): Promise<boolean>;
+	getAppInfo(): Promise<any>;
+	directCall(method: string, args: any[]): Promise<any>;
 }
 
 declare interface IPanelAPI {
@@ -19,5 +21,6 @@ declare interface IPanelAPI {
 }
 
 declare interface IAwayDebug {
-	registerWriter(type:number, func): void
+	registerWriter(type:number, func): void;
+	getInfo(): any;
 }

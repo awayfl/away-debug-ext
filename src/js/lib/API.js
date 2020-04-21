@@ -1,12 +1,3 @@
-export const EVENT = {
-	INJECT: 'inject',
-	DETACH: 'detach',
-	TEST: 'test',
-	LOG_BLOB: 'log',
-	LOG_INIT: 'log-init',
-	LOG_STOP: 'log-stop', 
-};
-
 export const PAGES = {
 	CONTENT: 'content-page',
 	DEVTOOL: 'devtools-page'
@@ -22,6 +13,10 @@ export class APIServer {
 	}
 
 	connect() {
+		if(this._bus) {
+			this._bus.disconnect();
+		}
+
 		this._bus = chrome.runtime.connect({
 			name: this.name,
 		});

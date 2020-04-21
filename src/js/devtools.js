@@ -1,6 +1,7 @@
 //@ts-check
 
-import { EVENT, APIServer, PAGES } from "./lib/API.js";
+import { APIServer, PAGES } from "./lib/API.js";
+import { EVENT } from "./lib/EVENT";
 
 const api = new APIServer(PAGES.DEVTOOL);
 
@@ -11,7 +12,7 @@ let contex = undefined;
 let injectionStatus = false;
 let isCapture = false;
 let pingTimeout = undefined;
-let isAttached =  false;
+let isAttached = false;
 
 async function getStatus() {
 	if (!injectionStatus) {
@@ -36,21 +37,21 @@ function serverIsDetached() {
 }
 
 function startPingout() {
-	pingTimeout = setTimeout(()=>{
+	pingTimeout = setTimeout(() => {
 		serverIsDetached();
 	}, 1000);
 
-	getStatus().then((status)=>{
+	getStatus().then((status) => {
 		clearInterval(pingTimeout);
 
-		if(!status) {
+		if (!status) {
 			serverIsDetached();
 		} else {
-			pingTimeout = setTimeout(()=>{
+			pingTimeout = setTimeout(() => {
 				startPingout();
-			}, 500)
+			}, 500);
 		}
-	})
+	});
 }
 
 function _onBlobReached(data) {
@@ -64,21 +65,23 @@ function _onBlobReached(data) {
 function startCaptureLogs({ type, limit = 500000 }, callback) {
 	_logsCallback = callback;
 
-	return api.send(EVENT.LOG_INIT, {
-		logType: type,
-		limit,
-		target: PAGES.CONTENT,
-	}).then(({allow}) => {
-		if(allow){
-			console.log("register blob flow");
+	return api
+		.send(EVENT.LOG_INIT, {
+			logType: type,
+			limit,
+			target: PAGES.CONTENT,
+		})
+		.then(({ allow }) => {
+			if (allow) {
+				console.log("register blob flow");
 
-			api.onFlow(EVENT.LOG_STOP, () => stopCaptureLogs(true));
-			api.onFlow(EVENT.LOG_BLOB, _onBlobReached);
-		}
-		isCapture = allow;
+				api.onFlow(EVENT.LOG_STOP, () => stopCaptureLogs(true));
+				api.onFlow(EVENT.LOG_BLOB, _onBlobReached);
+			}
+			isCapture = allow;
 
-		return allow;
-	});
+			return allow;
+		});
 }
 
 function stopCaptureLogs(supress = false) {
@@ -101,6 +104,8 @@ function stopCaptureLogs(supress = false) {
 }
 
 async function tryConnect() {
+	api.connect();
+
 	const status = await api.send(EVENT.INJECT, {
 		tabId: chrome.devtools.inspectedWindow.tabId,
 		scriptToInject: "js/content.js",
@@ -112,11 +117,34 @@ async function tryConnect() {
 
 	isAttached = status.status && isDebugable;
 
-	if(isAttached) {
+	if (isAttached) {
 		startPingout();
 	}
 
 	return isAttached;
+}
+
+async function getAppInfo() {
+	return directCall("getInfo");
+}
+
+async function directCall(method, args = []) {
+
+	console.debug("CALL DIRECT", method, args);
+	
+	if (!isAttached) {
+		throw "DevTool not attached to page!";
+	}
+
+	return api
+		.send(EVENT.CALL, { method, args, target: PAGES.CONTENT })
+		.then((e) => {
+			if (e.error) {
+				throw e.error;
+			}
+
+			return e.result;
+		});
 }
 
 /**
@@ -126,19 +154,18 @@ const devApi = {
 	getStatus,
 	startCaptureLogs,
 	stopCaptureLogs,
-	tryConnect
+	tryConnect,
+	getAppInfo,
+	directCall,
 };
 
 function _onPanelShow(panelContext) {
 	setTimeout(() => {
 		contex = panelContext.PANEL_API;
-		console.log(panelContext);
-		api.connect();
 
-		tryConnect().then((status)=>{
+		tryConnect().then((status) => {
 			contex.init(devApi);
 		});
-
 	}, 100);
 }
 
@@ -150,7 +177,7 @@ function _onPanelHide(panelContext) {
 
 chrome.devtools.panels.create(
 	"AwayFL",
-	"/gfx/icon16.png",
+	"gfx/icon16.png",
 	"panel.html",
 	(panel) => {
 		panel.onShown.addListener(_onPanelShow);

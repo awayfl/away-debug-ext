@@ -2,10 +2,12 @@ import "react-virtualized/styles.css";
 
 import React, { Component, createRef, Fragment } from "react";
 
-import { Button } from "./Button.jsx";
-import { Logger } from "./Logger.jsx";
+import { Button } from "./elements/Button.jsx";
+import { Logger } from "./Tabs/Logger.jsx";
+import { Main } from "./Tabs/Main.jsx";
+
 import styled from "styled-components";
-import { Icon } from "./SectionItems.jsx";
+import { RolledIcon, Icon } from "./elements/SectionItems.jsx";
 
 const CONNECTION_STATUS = {
 	OFFLINE: "offline",
@@ -15,21 +17,62 @@ const CONNECTION_STATUS = {
 
 const ATTEMTS = 100;
 const _TABS = {
+	Info: Main,
 	Logger: Logger,
 };
 
-const RolledIcon = styled(Icon)`
-	animation: roll 1s infinite;
+const Logo = styled.div`
+	background-image: url("./gfx/icon128.png");
+	background-size: contain;
+	width: 36px;
+	height: 36px;
+	margin: 0 0.5em;
+`;
 
-	@keyframes roll {
-		0% {
-			transform: rotate(0deg);
-		}
-		100% {
-			transform: rotate(-180deg);
-		}
+const ErrorBox = styled.div`
+	position: absolute;
+	width: 100vw;
+	min-height: 3em;
+	padding: 0em 1em;
+	background: #ff6347;
+	border: 1px solid #ff4500;
+	color: white;
+	top: -100%;
+	opacity: 0;
+	z-index: 100;
+	transition: top 0.5s, opacity 0.5s;
+
+	&.active {
+		top: 0%;
+		opacity: 1;
 	}
 `;
+
+const Close = styled(Icon)`
+	position: absolute;
+	right: 0.5em;
+	top: 0.5em;
+	cursor: pointer;
+	user-select: none;
+
+	&:hover {
+		color: #222;
+	}
+
+	&:focus {
+		transform: scale(0.8);
+	}
+`;
+
+export const Error = ({ title, message, onClose }) => {
+	return (
+		<ErrorBox className={message && "active"}>
+			<Close onClick={onClose}>clear</Close>
+			<h3>{title}</h3>
+			<p>{message}</p>
+		</ErrorBox>
+	);
+};
 
 export class Panel extends Component {
 	constructor(props) {
@@ -39,6 +82,7 @@ export class Panel extends Component {
 			currentTab: Object.keys(_TABS)[0],
 			connection: CONNECTION_STATUS.OFFLINE,
 			attemts: 0,
+			error: '',
 		};
 
 		/**
@@ -71,6 +115,26 @@ export class Panel extends Component {
 	onInit(devApi) {
 		this._devApi = devApi;
 
+		const oldCall = devApi.directCall;
+
+		devApi.directCall =  (...args) => {
+
+			console.log(args);
+
+			return oldCall(...args)
+				.then((e) => {
+					return e;
+				})
+				.catch((error) => {
+					
+					this.setState({
+						error
+					});
+
+					throw error;
+				});
+		};
+
 		const tab = this.activeTabRef.current;
 		tab.onInit && tab.onInit(this._devApi);
 
@@ -88,8 +152,19 @@ export class Panel extends Component {
 		});
 
 		setTimeout(() => {
-			this.onReconnect();
-		}, 1000);
+			this._runReconnection();
+		}, 300);
+	}
+
+	onAttach() {
+		const tab = this.activeTabRef.current;
+
+		tab.onAttach && tab.onAttach();
+
+		this.setState({
+			connection: CONNECTION_STATUS.ONLINE,
+			attemts: 0,
+		});
 	}
 
 	switchTab(name) {
@@ -102,6 +177,11 @@ export class Panel extends Component {
 		this._runReconnection();
 	}
 
+	onCloseError() {
+		this.setState({
+			error: undefined,
+		});
+	}
 	_runReconnection() {
 		clearTimeout(this._reconectionTimeout);
 
@@ -126,10 +206,7 @@ export class Panel extends Component {
 			clearTimeout(this._reconectionTimeout);
 
 			if (status) {
-				this.setState({
-					connection: CONNECTION_STATUS.ONLINE,
-					attemts: 0,
-				});
+				this.onAttach();
 			} else {
 				this.setState({
 					connection: CONNECTION_STATUS.CONNECTION,
@@ -172,18 +249,24 @@ export class Panel extends Component {
 			}
 			default: {
 				Status = (
-					<Button onClick={()=>this.onReconnect()} className="red">
+					<Button onClick={() => this.onReconnect()} className="red">
 						<span>OFFLINNE</span>
 						<Icon>cached</Icon>
 					</Button>
 				);
 			}
 		}
+
 		return (
 			<Fragment>
+				<Error
+					message={this.state.error}
+					title="ERROR"
+					onClose={() => this.onCloseError()}
+				/>
 				<nav className="main">
 					<div className="nav-wrap">
-						<div className="logo"></div>
+						<Logo />
 						{buttons}
 					</div>
 					{Status}

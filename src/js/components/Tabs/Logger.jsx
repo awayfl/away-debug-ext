@@ -1,8 +1,8 @@
 import React, { Component, createRef } from "react";
-import { Button } from "./Button.jsx";
-import { Label } from "./Label.jsx";
-import { Icon, Section, ListBox, Blink, Separator } from "./SectionItems.jsx";
-import { ItemContainer } from "./Item.jsx";
+import { Button } from "../elements/Button.jsx";
+import { Label } from "../elements/Label.jsx";
+import { Icon, Section, ListBox, Blink, Separator } from "../elements/SectionItems.jsx";
+import { ItemContainer } from "../elements/Item.jsx";
 import { List, AutoSizer } from "react-virtualized";
 
 import styled from "styled-components";

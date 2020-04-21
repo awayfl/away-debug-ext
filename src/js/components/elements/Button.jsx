@@ -6,7 +6,7 @@ import { Label } from "./Label.jsx";
 export const Button = styled(Label)`
 	min-width: 100px;
 	cursor: pointer;
-	transition: color 0.5s, background-color 0.5s, transform: 0.2s;
+	transition: color 0.5s, background-color 0.5s, transform 0.2s;
 
 	&.active, :hover {
 		background-color: #ccc;

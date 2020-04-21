@@ -1,88 +1,7 @@
+import {APIServer} from "./lib/PageAPI";
+import {EVENT} from "./lib/EVENT";
+
 (function () {
-	class APIServer {
-		constructor() {
-			this._pool = {};
-			this._messageId = 0;
-			this._onMessage = this._onMessage.bind(this);
-			this._flow = {};
-			this.connect();
-		}
-
-		connect() {
-			window.addEventListener("message", this._onMessage);
-		}
-
-		close() {
-			window.removeEventListener("message", this._onMessage);
-		}
-
-		_onMessage({ data }) {
-			if (data.from !== "_AWAY_PROXY_event") {
-				return;
-			}
-
-			const resolver = this._pool[data.id];
-			this._pool[data.id] = undefined;
-
-			if (!resolver) {
-				if (this._flow[data.type]) {
-					this._flow[data.type](this._answerFlow(data));
-				} else {
-					console.warn(
-						"message resolve not found",
-						data.id,
-						data.type
-					);
-				}
-			} else {
-				if (data.error) {
-					resolver.reject(data.error);
-					return;
-				}
-				resolver.resolve(data);
-			}
-		}
-
-		onFlow(type, callback) {
-			this._flow[type] = callback;
-		}
-
-		offFlow(type) {
-			this._flow[type] = false;
-		}
-
-		/**
-		 *
-		 * @param {any} data
-		 * @returns {{answer: Function}}
-		 */
-		_answerFlow(data) {
-			data.answer = (_newData = {}) => {
-				_newData.type = data.type;
-				_newData.id = data.id;
-				_newData.from = "_AWAY_API_event";
-				_newData.target = data.sender;
-				window.postMessage(_newData, "*");
-			};
-			return data;
-		}
-
-		async send(type, data = {}) {
-			data.type = type;
-			data.id = data.id || this._messageId++;
-			data.from = "_AWAY_API_event";
-
-			return new Promise((resolve, reject) => {
-				this._pool[data.id] = {
-					id: data.id,
-					resolve,
-					reject,
-				};
-				window.postMessage(data, "*");
-			});
-		}
-	}
-
 	// ---------------main -------------
 	const api = new APIServer();
 
@@ -99,12 +18,24 @@
 	let _logBathedSender = undefined;
 	let _lastLoggedValue = undefined;
 
+	function safeCall(method, args) {
+		if(!AWAY_DEBUG) {
+			throw "[AWAY DEBUG PAGE API] AWAY DEBUG interface not found!";
+		}
+
+		if(typeof AWAY_DEBUG[method] !== 'function') {
+			throw `[AWAY DEBUG PAGE API] field ${method} not callable!`;
+		}
+
+		return AWAY_DEBUG[method].call(undefined, args);
+	}
+
 	function _detachLogger(reason) {
 		AWAY_DEBUG.registerWriter(0, null);
 
 		clearTimeout(_logBathedSender);
 
-		api.send("log-stop", { target: "devtools-page", reason });
+		api.send(EVENT.LOG_STOP, { target: "devtools-page", reason });
 	}
 
 	function _sendLog(blob) {
@@ -117,7 +48,7 @@
 		}, WAIT_TIMEOUT);
 		
 		// send blobs and wait, or stop sending!
-		api.send("log", { blob, target: "devtools-page", total: _total }).then(
+		api.send(EVENT.LOG_BLOB, { blob, target: "devtools-page", total: _total }).then(
 			(e) => {
 				clearTimeout(waiter);
 			}
@@ -153,6 +84,19 @@
 		}
 	}
 
+	function logInit({ answer, logType, limit }) {
+		_limit = limit;
+		_total = 0;
+
+		safeCall('registerWriter',logType, _logWriter);
+
+		answer({allow: true});
+	}
+
+	function logStop() {
+		_detachLogger("manual");
+	}
+
 	function testOnDebug({ answer }) {
 		if(!AWAY_DEBUG && window._AWAY_DEBUG_){
 			console.debug("AWAY_API attached");
@@ -163,20 +107,29 @@
 		answer({ status: !!AWAY_DEBUG });
 	}
 
-	function logInit({ answer, logType, limit }) {
-		_limit = limit;
-		_total = 0;
+	function directCall({answer, method, args = []}){
+		
+		try{
+			const data = safeCall(method, args);
 
-		AWAY_DEBUG.registerWriter(logType, _logWriter);
-		answer({allow: true});
+			if(data && typeof data.then === 'function') {
+				data.then((result)=>{
+					answer({result})
+				});
+			} else {
+				answer({result: data});
+			}
+
+		} catch(e) {
+			answer({error: e});
+		}
 	}
 
-	function logStop() {
-		_detachLogger("manual");
-	}
+	api.onFlow(EVENT.DETACH, function(){});
+	api.onFlow(EVENT.TEST, testOnDebug);
+	api.onFlow(EVENT.LOG_INIT, logInit);
+	api.onFlow(EVENT.LOG_STOP, logStop);
+	api.onFlow(EVENT.CALL, directCall);
 
-	api.onFlow("test", testOnDebug);
-	api.onFlow("log-init", logInit);
-	api.onFlow("log-stop", logStop);
 	///
 })();

@@ -13,6 +13,8 @@ export const Section = styled.div`
 	display: flex;
 	flex-direction: column;
 	background-color: #222;
+
+	color: #ccc;
 `;
 
 export const ListBox = styled.div`
@@ -20,9 +22,24 @@ export const ListBox = styled.div`
 	width: 100%;
 	flex-grow: 1;
 `;
-export const Icon = ({ children, className }) => (
-	<span className={`${className} material-icons`}>{children}</span>
+
+export const Icon = ({ children, className, onClick }) => (
+	<span className={`${className} material-icons`} onClick = {onClick} >{children}</span>
 );
+
+export const RolledIcon = styled(Icon)`
+	animation: roll 1s infinite;
+
+	@keyframes roll {
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(-180deg);
+		}
+	}
+`;
+
 
 export const Blink = styled(Icon)`
 	&.blink {
