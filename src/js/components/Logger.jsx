@@ -1,8 +1,20 @@
-import React, { Component } from "react";
-import InfiniteScroll from 'react-infinite-scroll-component';
+import React, { Component, createRef } from "react";
 import { Button } from "./Button.jsx";
 import { Label } from "./Label.jsx";
+import { Icon, Section, ListBox, Blink, Separator } from "./SectionItems.jsx";
+import { ItemContainer } from "./Item.jsx";
+import { List, AutoSizer } from "react-virtualized";
+
 import styled from "styled-components";
+
+const Footer = styled.div`
+	color: #eee;
+
+	height: 36px;
+	line-height: 28px;
+	padding: 4px;
+	border-top: #666 solid 1px;
+`;
 
 const MODES = {
 	Runtime: 1,
@@ -10,38 +22,21 @@ const MODES = {
 	Interpreter: 4,
 };
 
-const Icon = ({ children, className }) => (
-	<span className={`${className} material-icons`}>{children}</span>
-);
-const Blink = styled(Icon)`
-	&.blink {
-		animation: blink-anim 1s infinite alternate;
-	}
-
-	@keyframes blink-anim {
-		0% {
-			color: #ccc;
-		}
-		100% {
-			color: #cc2222;
-		}
-	}
-`;
-
-const Separator = styled.div`
-	width: 2px;
-	height: 80%;
-	background-color: #ccc;
-`;
-
-const LoggerNav = ({ logTypes = [], onCapture, onMode, isCapture }) => {
+const LoggerNav = ({
+	logTypes = [],
+	onCapture,
+	onMode,
+	onClear,
+	isCapture,
+	isLocked,
+}) => {
 	const _buttons = Object.keys(MODES).map((name) => {
 		const id = MODES[name];
 		const active = logTypes.includes(id);
 		return (
 			<Button
 				className={`writers ${active && "active"} ${
-					isCapture && "locked"
+					(isCapture || isLocked) && "locked"
 				}`}
 				key={name}
 				onClick={() => onMode(id)}
@@ -56,7 +51,7 @@ const LoggerNav = ({ logTypes = [], onCapture, onMode, isCapture }) => {
 			<Button
 				id="capture_button"
 				onClick={onCapture}
-				className={isCapture && "active"}
+				className={`${isCapture && "active"} ${isLocked && "locked"}`}
 			>
 				<span> {isCapture ? "Stop" : "Capture"}</span>
 				<Blink className={`${isCapture && "blink"}`}>
@@ -65,12 +60,12 @@ const LoggerNav = ({ logTypes = [], onCapture, onMode, isCapture }) => {
 			</Button>
 
 			<Separator />
-			<Button className="tiny">
+			<Button className="tiny" onClick={onClear}>
 				<Icon>cached</Icon>
 			</Button>
 			<Separator />
 
-			<Label className="right">Mode:</Label>
+			<Label>Mode:</Label>
 			{_buttons}
 		</nav>
 	);
@@ -83,10 +78,25 @@ export class Logger extends Component {
 		this.state = {
 			logTypes: [MODES.Runtime],
 			isCapture: false,
+			indexed: true,
+			dataLen: 0
 		};
 
+		this._itemList = [];
+
+		/**
+		 * @type {IDevToolAPI}
+		 */
 		this._devApi = props.devApi;
+
 		this._logType = 0;
+
+		this._renderRow = this._renderRow.bind(this);
+		this._measureRow = this._measureRow.bind(this);
+		this._onResize = this._onResize.bind(this);
+		this._inDataArrival = this._onDataArrival.bind(this);
+
+		this.listRef = createRef();
 	}
 
 	/**
@@ -105,16 +115,36 @@ export class Logger extends Component {
 
 	// emited when devApi is detached
 	onDetach() {
-		this._devApi = undefined;
 		this.setState({
 			isCapture: false,
 		});
 	}
 
 	onCapture() {
-		this.setState({
-			isCapture: !this.state.isCapture,
-		});
+		if (!this._devApi) {
+			return;
+		}
+		const runned = this.state.isCapture;
+
+		if (runned) {
+			this._devApi.stopCaptureLogs();
+			this.setState({
+				isCapture: false,
+			});
+		} else {
+			console.log("Try start capture");
+
+			this._devApi
+				.startCaptureLogs(
+					{ type: this._logType, limit: 2000000 },
+					this._inDataArrival
+				)
+				.then((allow) => {
+					this.setState({
+						isCapture: allow,
+					});
+				});
+		}
 	}
 
 	onMode(modeIndex) {
@@ -140,19 +170,94 @@ export class Logger extends Component {
 		});
 	}
 
-	render() {
-		const { isCapture, logTypes } = this.state;
+	onClear() {
+		this._itemList.length = 0;
+		this.setState({
+			dataLen: 0,
+		});
+	}
+
+	/**
+	 *
+	 * @param {string[]} data
+	 */
+	_onDataArrival(data) {
+		data.forEach((e) => {
+			this._itemList.push(e);
+		});
+
+		this.setState({
+			dataLen: this._itemList.length,
+		});
+	}
+
+	_renderRow({ key, index, style }) {
+		const indexed = this.state.indexed;
 
 		return (
-			<section>
+			<ItemContainer
+				data-index={("" + index).padStart(5, "0")}
+				key={key}
+				style={style}
+				className={indexed && "indexed"}
+			>
+				{this._itemList[index]}
+			</ItemContainer>
+		);
+	}
+
+	_measureRow(index, width) {
+		const v = this._itemList[index];
+		const font = 10;
+		const itemHeight = 24;
+		const rows = ((v.length * font) / width) | 0 || 1;
+
+		return itemHeight * rows;
+	}
+
+	_onResize({ width, height }) {
+		this.listRef.current.recomputeRowHeights();
+	}
+
+	render() {
+		const { isCapture, logTypes } = this.state;
+		const { _itemList, _renderRow, _measureRow, _onResize } = this;
+
+		return (
+			<Section locked={this.props.locked}>
 				<LoggerNav
 					isCapture={isCapture}
+					isLocked={this.props.locked}
 					logTypes={logTypes}
 					onCapture={() => this.onCapture()}
 					onMode={(v) => this.onMode(v)}
+					onClear={() => this.onClear()}
 				/>
-				<div className="list" id="log-list"></div>
-			</section>
+				<ListBox>
+					<AutoSizer onResize={_onResize}>
+						{({ height, width }) => (
+							<List
+								style={{
+									outline: "none",
+									scrollbarColor: "dark",
+								}}
+								height={height}
+								rowCount={_itemList.length}
+								rowHeight={({ index }) =>
+									_measureRow(index, width)
+								}
+								rowRenderer={_renderRow}
+								width={width}
+								scrollToIndex={_itemList.length - 1}
+								ref={this.listRef}
+							/>
+						)}
+					</AutoSizer>
+				</ListBox>
+				<Footer>
+					<span>Lines: {_itemList.length}</span>
+				</Footer>
+			</Section>
 		);
 	}
 }

@@ -1,12 +1,17 @@
+//@ts-check
+
 import { EVENT, APIServer, PAGES } from "./lib/API.js";
 
 const api = new APIServer(PAGES.DEVTOOL);
+
 /**
  * @type {IPanelAPI}
  */
 let contex = undefined;
 let injectionStatus = false;
 let isCapture = false;
+let pingTimeout = undefined;
+let isAttached =  false;
 
 async function getStatus() {
 	if (!injectionStatus) {
@@ -20,33 +25,64 @@ async function getStatus() {
 
 let _logsCallback = undefined;
 
-function _onBlobReached(data) {
+function serverIsDetached() {
+	clearInterval(pingTimeout);
 
-	if(_logsCallback) {
+	isCapture = false;
+	isAttached = false;
+	contex && contex.detach();
+
+	console.warn("AWAY DEV server is detached!");
+}
+
+function startPingout() {
+	pingTimeout = setTimeout(()=>{
+		serverIsDetached();
+	}, 1000);
+
+	getStatus().then((status)=>{
+		clearInterval(pingTimeout);
+
+		if(!status) {
+			serverIsDetached();
+		} else {
+			pingTimeout = setTimeout(()=>{
+				startPingout();
+			}, 500)
+		}
+	})
+}
+
+function _onBlobReached(data) {
+	if (_logsCallback) {
 		// пинаем, что не зависили!
 		data.answer({});
 		_logsCallback(data.blob);
 	}
 }
 
-function captureLogs({ type, limit = 500000 }, callback) {
+function startCaptureLogs({ type, limit = 500000 }, callback) {
 	_logsCallback = callback;
 
-	api.send(EVENT.LOG_INIT, {
+	return api.send(EVENT.LOG_INIT, {
 		logType: type,
 		limit,
 		target: PAGES.CONTENT,
-	}).then(() => {
-		console.log("register blob flow");
+	}).then(({allow}) => {
+		if(allow){
+			console.log("register blob flow");
 
-		api.onFlow(EVENT.LOG_STOP, () => stopCapture(true) );
-		api.onFlow(EVENT.LOG_BLOB, _onBlobReached);
-		isCapture = true;
+			api.onFlow(EVENT.LOG_STOP, () => stopCaptureLogs(true));
+			api.onFlow(EVENT.LOG_BLOB, _onBlobReached);
+		}
+		isCapture = allow;
+
+		return allow;
 	});
 }
 
-function stopCapture(supress = false) {
-	if(!isCapture) {
+function stopCaptureLogs(supress = false) {
+	if (!isCapture) {
 		return;
 	}
 
@@ -54,14 +90,33 @@ function stopCapture(supress = false) {
 
 	console.debug("DEVTOOL", "STOP CAPTURE");
 
-	api.offFlow(EVENT.LOG_BLOB, _onBlobReached);
-	
-	if(!supress){
+	api.offFlow(EVENT.LOG_BLOB);
+
+	if (!supress) {
 		api.send(EVENT.LOG_STOP, { target: PAGES.CONTENT });
 	}
 
-	contex.emit(EVENT.LOG_STOP);
+	contex.emit(EVENT.LOG_STOP, {});
 	_logsCallback = undefined;
+}
+
+async function tryConnect() {
+	const status = await api.send(EVENT.INJECT, {
+		tabId: chrome.devtools.inspectedWindow.tabId,
+		scriptToInject: "js/content.js",
+	});
+
+	injectionStatus = status.status;
+
+	const isDebugable = await getStatus();
+
+	isAttached = status.status && isDebugable;
+
+	if(isAttached) {
+		startPingout();
+	}
+
+	return isAttached;
 }
 
 /**
@@ -69,25 +124,21 @@ function stopCapture(supress = false) {
  */
 const devApi = {
 	getStatus,
-	captureLogs,
-	stopCapture,
+	startCaptureLogs,
+	stopCaptureLogs,
+	tryConnect
 };
 
 function _onPanelShow(panelContext) {
-	setTimeout(()=>{
+	setTimeout(() => {
 		contex = panelContext.PANEL_API;
-
 		console.log(panelContext);
-
 		api.connect();
 
-		api.send(EVENT.INJECT, {
-			tabId: chrome.devtools.inspectedWindow.tabId,
-			scriptToInject: "js/content.js",
-		}).then(({ status }) => {
-			injectionStatus = status;
+		tryConnect().then((status)=>{
 			contex.init(devApi);
 		});
+
 	}, 100);
 }
 

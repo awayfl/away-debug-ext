@@ -1,11 +1,15 @@
+declare var chrome;
+
 declare interface Window {
-	PANEL_API: IPanelAPI
+	PANEL_API: IPanelAPI;
+	chrome: any;
 }
 
 declare interface IDevToolAPI {
 	getStatus(): Promise<boolean>;
-	captureLogs(options: {type: number, limit: number}, callbakc: (data: string[])=> void): void;
-	stopCapture();
+	startCaptureLogs(options: {type: number, limit: number}, callbakc: (data: string[])=> void): Promise<boolean>;
+	stopCaptureLogs(): void;
+	tryConnect(): Promise<boolean>;
 }
 
 declare interface IPanelAPI {

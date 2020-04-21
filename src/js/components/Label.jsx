@@ -12,4 +12,15 @@ export const Label = styled.div`
 	
 	background-color: #222;
 	color: #ccc;
+	
+	&.right {
+		margin-left: auto;
+	}
+	
+	&.red {
+		color: #cc2222;
+	}
+	&.green {
+		color: #22cc22;
+	}
 `

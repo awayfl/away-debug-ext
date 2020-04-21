@@ -3,6 +3,18 @@
 	--nav: 36px;
 }
 
+*::-webkit-scrollbar {
+	width: 14px;
+}
+
+*::-webkit-scrollbar-track {
+	background: #333;
+}
+
+*::-webkit-scrollbar-thumb {
+	background: #666;
+}
+
 div {
 	box-sizing: border-box;
 }
