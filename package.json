@@ -6,7 +6,7 @@
 	"scripts": {
 		"prebuild": "rimraf dist",
 		"prewatch": "rimraf dist",
-		"build": "parcel build src/panel.html src/devtools.html src/js/background.js src/js/page-api.js src/js/content.js --no-content-hash --no-minify",
+		"build": "parcel build src/panel.html src/devtools.html src/js/background.js src/js/page-api.js src/js/content.js --no-content-hash",
 		"watch": "parcel watch src/panel.html src/devtools.html src/js/background.js src/js/page-api.js src/js/content.js --no-hmr"
 	},
 	"repository": {
