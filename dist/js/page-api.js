@@ -280,14 +280,14 @@ parcelRequire = (function (modules, cache, entry, globalName) {
   function testOnDebug({
     answer
   }) {
+    if (!AWAY_DEBUG && window._AWAY_DEBUG_) {
+      console.debug("AWAY_API attached");
+    }
+
     AWAY_DEBUG = window._AWAY_DEBUG_;
     answer({
       status: !!AWAY_DEBUG
     });
-
-    if (AWAY_DEBUG) {
-      console.debug("AWAY_API attached");
-    }
   }
 
   function logInit({
@@ -298,7 +298,9 @@ parcelRequire = (function (modules, cache, entry, globalName) {
     _limit = limit;
     _total = 0;
     AWAY_DEBUG.registerWriter(logType, _logWriter);
-    answer({});
+    answer({
+      allow: true
+    });
   }
 
   function logStop() {
