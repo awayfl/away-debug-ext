@@ -15,7 +15,7 @@ const CONNECTION_STATUS = {
 	CONNECTION: "connection",
 };
 
-const ATTEMTS = 100;
+const ATTEMTS = 10;
 const _TABS = {
 	Info: Main,
 	Logger: Logger,
@@ -142,18 +142,20 @@ export class Panel extends Component {
 	}
 
 	// emited from dev provider
-	onDetach() {
+	onDetach(reconnect = true) {
 		const tab = this.activeTabRef.current;
 
-		tab.onDetach && tab.onDetach();
+		tab.onDetach && tab.onDetach(reconnect);
 
 		this.setState({
-			attached: false,
+			connection: CONNECTION_STATUS.OFFLINE,
 		});
 
-		setTimeout(() => {
-			this._runReconnection();
-		}, 300);
+		if(reconnect){
+			setTimeout(() => {
+				this._runReconnection();
+			}, 1000);
+		}
 	}
 
 	onAttach() {

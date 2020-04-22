@@ -1,25 +1,51 @@
 //@ts-check
 
-import { APIServer, PAGES } from "./lib/API.js";
+import { APIServer, PAGES } from "./lib/API";
 import { EVENT } from "./lib/EVENT";
 
 const api = new APIServer(PAGES.DEVTOOL);
 
-/**
- * @type {IPanelAPI}
- */
-let contex = undefined;
-let injectionStatus = false;
-let isCapture = false;
-let pingTimeout = undefined;
-let isAttached = false;
+let contex: IPanelAPI = undefined;
+let isCapture: boolean = false;
+let pingTimeout: any = undefined;
+let isAttached: boolean = false;
+let currentTab: number = -1;
 
-async function getStatus() {
-	if (!injectionStatus) {
-		return false;
+async function injectPageApi(): Promise<any> {
+	currentTab = chrome.devtools.inspectedWindow.tabId;
+	console.log("CURRENT TAB", currentTab);
+
+	api.connect(currentTab);
+	
+	const testPage = await new Promise((res)=>{
+		chrome.tabs.executeScript(currentTab, {
+			code: `window.__AWAY__PAGE__API`
+		}, (result)=>{
+			console.debug("Test page of field", result);
+			
+			res(result[0]);
+		})
+	})
+
+	if(testPage) {
+		console.debug("Connect to existed page");
+		return true;
 	}
+	
+	console.debug("Execute new instance");
 
-	return api.send(EVENT.TEST, { target: PAGES.CONTENT }).then((e) => {
+	return new Promise((res) => {
+		chrome.tabs.executeScript(
+			currentTab,
+			{ file: "js/content.js" },
+			res
+		);
+	});
+}
+
+async function getStatus(timeout = 0): Promise<boolean> {
+
+	return api.send(EVENT.TEST, {}, timeout).then((e) => {
 		return e.status;
 	});
 }
@@ -31,9 +57,9 @@ function serverIsDetached() {
 
 	isCapture = false;
 	isAttached = false;
-	contex && contex.detach();
+	contex && contex.detach(true);
 
-	console.warn("AWAY DEV server is detached!");
+	console.debug("AWAY DEV server is detached!");
 }
 
 function startPingout() {
@@ -54,7 +80,7 @@ function startPingout() {
 	});
 }
 
-function _onBlobReached(data) {
+function _onBlobReached(data: { blob: string[]; answer: Function }) {
 	if (_logsCallback) {
 		// пинаем, что не зависили!
 		data.answer({});
@@ -103,35 +129,45 @@ function stopCaptureLogs(supress = false) {
 	_logsCallback = undefined;
 }
 
-async function tryConnect() {
-	api.connect();
+let _connection = undefined;
 
-	const status = await api.send(EVENT.INJECT, {
-		tabId: chrome.devtools.inspectedWindow.tabId,
-		scriptToInject: "js/content.js",
-	});
+async function _tryConnect(): Promise<boolean> {
+	await injectPageApi();
 
-	injectionStatus = status.status;
+	//if(api.)api.connect(currentTab);
 
-	const isDebugable = await getStatus();
-
-	isAttached = status.status && isDebugable;
+	isAttached = await getStatus();
 
 	if (isAttached) {
 		startPingout();
 	}
 
+	_connection = undefined;
 	return isAttached;
 }
 
-async function getAppInfo() {
+async function tryConnect(): Promise<boolean> {
+	if(_connection) {
+		console.log("Called runned connectio");
+		return _connection;
+	}
+
+	_connection = _tryConnect();
+
+	setTimeout(()=>{
+		_connection = undefined;
+	}, 1000)
+
+	return _connection;
+}
+
+async function getAppInfo(): Promise<any> {
 	return directCall("getInfo");
 }
 
-async function directCall(method, args = []) {
-
+async function directCall(method: string, args: any[] = []): Promise<any> {
 	console.debug("CALL DIRECT", method, args);
-	
+
 	if (!isAttached) {
 		throw "DevTool not attached to page!";
 	}
@@ -159,20 +195,27 @@ const devApi = {
 	directCall,
 };
 
-function _onPanelShow(panelContext) {
+function _onPanelShow(panelContext: Window) {
 	setTimeout(() => {
-		contex = panelContext.PANEL_API;
+		api.onFlow('unload', serverIsDetached);
 
-		tryConnect().then((status) => {
-			contex.init(devApi);
-		});
+		contex = panelContext.PANEL_API;
+		contex.init(devApi);
 	}, 100);
 }
 
-function _onPanelHide(panelContext) {
-	contex = undefined;
+function _onPanelHide() {
+	
+	if(contex) {
+		contex.detach(true);
+	}
+
+	api.offFlow('unload');
+
 	api.send(EVENT.DETACH, { target: PAGES.CONTENT });
 	api.close();
+
+	contex = undefined;
 }
 
 chrome.devtools.panels.create(

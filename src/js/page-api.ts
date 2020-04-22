@@ -1,9 +1,18 @@
-import {APIServer} from "./lib/PageAPI";
-import {EVENT} from "./lib/EVENT";
+import { APIPage } from "./lib/PageAPI";
+import { EVENT } from "./lib/EVENT";
+
+declare global {
+	interface Window {
+		_AWAY_DEBUG_: IAwayDebug;
+	}
+}
 
 (function () {
+
+	console.debug("PAGE API INJECTED");
+
 	// ---------------main -------------
-	const api = new APIServer();
+	const api = new APIPage();
 
 	const BATCH_BLOB_TIME = 500;
 	const BATCH_BLOBS = 1000;
@@ -18,19 +27,19 @@ import {EVENT} from "./lib/EVENT";
 	let _logBathedSender = undefined;
 	let _lastLoggedValue = undefined;
 
-	function safeCall(method, args) {
-		if(!AWAY_DEBUG) {
+	function safeCall(method: string, args: any[]) {
+		if (!AWAY_DEBUG) {
 			throw "[AWAY DEBUG PAGE API] AWAY DEBUG interface not found!";
 		}
 
-		if(typeof AWAY_DEBUG[method] !== 'function') {
+		if (typeof AWAY_DEBUG[method] !== "function") {
 			throw `[AWAY DEBUG PAGE API] field ${method} not callable!`;
 		}
 
-		return AWAY_DEBUG[method].call(undefined, args);
+		return AWAY_DEBUG[method].apply(undefined, args);
 	}
 
-	function _detachLogger(reason) {
+	function _detachLogger(reason: string) {
 		AWAY_DEBUG.registerWriter(0, null);
 
 		clearTimeout(_logBathedSender);
@@ -38,25 +47,27 @@ import {EVENT} from "./lib/EVENT";
 		api.send(EVENT.LOG_STOP, { target: "devtools-page", reason });
 	}
 
-	function _sendLog(blob) {
-		if(!blob.length) {
+	function _sendLog(blob: string[]) {
+		if (!blob.length) {
 			return;
 		}
 
 		const waiter = setTimeout(() => {
 			_detachLogger("timeout");
 		}, WAIT_TIMEOUT);
-		
+
 		// send blobs and wait, or stop sending!
-		api.send(EVENT.LOG_BLOB, { blob, target: "devtools-page", total: _total }).then(
-			(e) => {
-				clearTimeout(waiter);
-			}
-		);
+		api.send(EVENT.LOG_BLOB, {
+			blob,
+			target: "devtools-page",
+			total: _total,
+		}).then((e) => {
+			clearTimeout(waiter);
+		});
 	}
 
-	function _logWriter(str) {
-		if(str !== _lastLoggedValue){
+	function _logWriter(str: string) {
+		if (str !== _lastLoggedValue) {
 			_logBlob.push(str);
 			_total++;
 
@@ -88,9 +99,9 @@ import {EVENT} from "./lib/EVENT";
 		_limit = limit;
 		_total = 0;
 
-		safeCall('registerWriter',logType, _logWriter);
+		safeCall("registerWriter", [logType, _logWriter]);
 
-		answer({allow: true});
+		answer({ allow: true });
 	}
 
 	function logStop() {
@@ -98,7 +109,7 @@ import {EVENT} from "./lib/EVENT";
 	}
 
 	function testOnDebug({ answer }) {
-		if(!AWAY_DEBUG && window._AWAY_DEBUG_){
+		if (!AWAY_DEBUG && window._AWAY_DEBUG_) {
 			console.debug("AWAY_API attached");
 		}
 
@@ -107,25 +118,23 @@ import {EVENT} from "./lib/EVENT";
 		answer({ status: !!AWAY_DEBUG });
 	}
 
-	function directCall({answer, method, args = []}){
-		
-		try{
+	function directCall({ answer, method, args = [] }) {
+		try {
 			const data = safeCall(method, args);
 
-			if(data && typeof data.then === 'function') {
-				data.then((result)=>{
-					answer({result})
+			if (data && typeof data.then === "function") {
+				data.then((result) => {
+					answer({ result });
 				});
 			} else {
-				answer({result: data});
+				answer({ result: data });
 			}
-
-		} catch(e) {
-			answer({error: e});
+		} catch (e) {
+			answer({ error: e });
 		}
 	}
 
-	api.onFlow(EVENT.DETACH, function(){});
+	api.onFlow(EVENT.DETACH, function () {});
 	api.onFlow(EVENT.TEST, testOnDebug);
 	api.onFlow(EVENT.LOG_INIT, logInit);
 	api.onFlow(EVENT.LOG_STOP, logStop);

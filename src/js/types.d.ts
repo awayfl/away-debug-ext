@@ -1,5 +1,3 @@
-declare var chrome;
-
 declare interface Window {
 	PANEL_API: IPanelAPI;
 	chrome: any;
@@ -17,7 +15,7 @@ declare interface IDevToolAPI {
 declare interface IPanelAPI {
 	emit(type: string, data: any);
 	init(devTool: IDevToolAPI);
-	detach();
+	detach(tryReconnect: boolean);
 }
 
 declare interface IAwayDebug {

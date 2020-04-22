@@ -1,8 +1,9 @@
-import { EVENT, PAGES } from "./lib/API.js";
+import { PAGES } from "./lib/API";
+import {EVENT} from "./lib/EVENT";
 
 const _BUSSES = {
-	[PAGES.CONTENT]: {},
-	[PAGES.DEVTOOL]: {},
+	[PAGES.CONTENT]: {onMessage: undefined, port: undefined},
+	[PAGES.DEVTOOL]: {onMessage: undefined, port: undefined},
 };
 
 let _injectRequestId = 0;
