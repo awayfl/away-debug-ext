@@ -10,10 +10,6 @@
     "128": "gfx/icon128.png"
   },
   "permissions": ["tabs", "*://localhost/*"],
-  "background": {
-    "scripts": ["js/background.js"],
-    "persistent": false
-  },
   "web_accessible_resources": ["js/page-api.js", "js/content.js"],
   "externally_connectable": {
     "matches": ["*://localhost/*"]
