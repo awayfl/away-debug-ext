@@ -16,7 +16,10 @@ async function injectPageApi(): Promise<any> {
 	console.log("CURRENT TAB", currentTab);
 
 	api.connect(currentTab);
-	
+
+	return true;
+
+	/*
 	const testPage = await new Promise((res)=>{
 		chrome.tabs.executeScript(currentTab, {
 			code: `window.__AWAY__PAGE__API`
@@ -40,11 +43,10 @@ async function injectPageApi(): Promise<any> {
 			{ file: "js/content.js" },
 			res
 		);
-	});
+	});*/
 }
 
 async function getStatus(timeout = 0): Promise<boolean> {
-
 	return api.send(EVENT.TEST, {}, timeout).then((e) => {
 		return e.status;
 	});
@@ -62,6 +64,8 @@ function serverIsDetached() {
 	console.debug("AWAY DEV server is detached!");
 }
 
+let runned = false;
+
 function startPingout() {
 	pingTimeout = setTimeout(() => {
 		serverIsDetached();
@@ -75,7 +79,7 @@ function startPingout() {
 		} else {
 			pingTimeout = setTimeout(() => {
 				startPingout();
-			}, 500);
+			}, 1000);
 		}
 	});
 }
@@ -136,7 +140,11 @@ async function _tryConnect(): Promise<boolean> {
 
 	//if(api.)api.connect(currentTab);
 
-	isAttached = await getStatus();
+	try {
+		isAttached = await getStatus(300);
+	} catch (e) {
+		isAttached = false;
+	}
 
 	if (isAttached) {
 		startPingout();
@@ -147,16 +155,16 @@ async function _tryConnect(): Promise<boolean> {
 }
 
 async function tryConnect(): Promise<boolean> {
-	if(_connection) {
+	if (_connection) {
 		console.log("Called runned connectio");
 		return _connection;
 	}
 
 	_connection = _tryConnect();
 
-	setTimeout(()=>{
+	setTimeout(() => {
 		_connection = undefined;
-	}, 1000)
+	}, 1000);
 
 	return _connection;
 }
@@ -197,7 +205,7 @@ const devApi = {
 
 function _onPanelShow(panelContext: Window) {
 	setTimeout(() => {
-		api.onFlow('unload', serverIsDetached);
+		api.onFlow("unload", serverIsDetached);
 
 		contex = panelContext.PANEL_API;
 		contex.init(devApi);
@@ -205,14 +213,9 @@ function _onPanelShow(panelContext: Window) {
 }
 
 function _onPanelHide() {
-	
-	if(contex) {
-		contex.detach(true);
-	}
+	serverIsDetached();
 
-	api.offFlow('unload');
-
-	api.send(EVENT.DETACH, { target: PAGES.CONTENT });
+	api.offFlow("unload");
 	api.close();
 
 	contex = undefined;

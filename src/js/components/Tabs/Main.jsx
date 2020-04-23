@@ -22,6 +22,7 @@ const ItemsLine = styled.div`
 	font-size: 18px;
 	display: flex;
 	flex-direction: row;
+	flex-wrap: wrap;
 `;
 
 const ItemElement = styled.div`
@@ -64,13 +65,16 @@ export class Main extends Component {
 		/**
 		 * @type {IDevToolAPI}
 		 */
-		this._devAPI = undefined;
+		this._devAPI = props.devApi;
 
+		if(this._devAPI) {
+			//this.onAttach();
+		}
 	}
 
 	
 	onDetach() {
-		this._prepareInfo({});
+		//this._prepareInfo({});
 	}
 
 	onAttach() {		
@@ -102,7 +106,7 @@ export class Main extends Component {
 		const { info } = this.state;
 
 		return (
-			<Wrap>
+			<Wrap style = {{opacity: this.props.locked ? 0.5 : 1}} active = {this.props.active}>
 				<InfoPallete name="FILE" fields={info.file} />
 				<InfoPallete name="RUNTIME" fields={info.runtime} />
 

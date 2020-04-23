@@ -49,7 +49,7 @@ function Init() {
 	});
 
 	chrome.runtime.onConnect.addListener(function (port: chrome.runtime.Port) {
-		console.log("AWAY CONTENT", port);
+		//console.log("AWAY CONTENT", port);
 		actualPort = port;
 
 		// background -> page-api

@@ -1,6 +1,6 @@
 import "react-virtualized/styles.css";
 
-import React, { Component, createRef, Fragment } from "react";
+import React, { Component, createRef, Fragment, createContext } from "react";
 
 import { Button } from "./elements/Button.jsx";
 import { Logger } from "./Tabs/Logger.jsx";
@@ -82,7 +82,7 @@ export class Panel extends Component {
 			currentTab: Object.keys(_TABS)[0],
 			connection: CONNECTION_STATUS.OFFLINE,
 			attemts: 0,
-			error: '',
+			error: "",
 		};
 
 		/**
@@ -117,18 +117,14 @@ export class Panel extends Component {
 
 		const oldCall = devApi.directCall;
 
-		devApi.directCall =  (...args) => {
-
-			console.log(args);
-
+		devApi.directCall = (...args) => {
 			return oldCall(...args)
 				.then((e) => {
 					return e;
 				})
 				.catch((error) => {
-					
 					this.setState({
-						error
+						error,
 					});
 
 					throw error;
@@ -149,16 +145,17 @@ export class Panel extends Component {
 
 		this.setState({
 			connection: CONNECTION_STATUS.OFFLINE,
+			attemts: 0,
 		});
 
-		if(reconnect){
-			setTimeout(() => {
-				this._runReconnection();
-			}, 1000);
-		}
+		this._stopConnection();
+
+		setTimeout(() => {
+			this._runReconnection();
+		}, 1000);
 	}
 
-	onAttach() {
+	onConnectingDone() {
 		const tab = this.activeTabRef.current;
 
 		tab.onAttach && tab.onAttach();
@@ -176,6 +173,7 @@ export class Panel extends Component {
 	}
 
 	onReconnect() {
+		console.debug("Force reconnect");
 		this._runReconnection();
 	}
 
@@ -184,15 +182,22 @@ export class Panel extends Component {
 			error: undefined,
 		});
 	}
-	_runReconnection() {
-		clearTimeout(this._reconectionTimeout);
 
+	_stopConnection() {
+		clearTimeout(this._reconectionTimeout);
+	}
+
+	_runReconnection() {
 		if (
-			this.state.connection === CONNECTION_STATUS.ONLINE ||
-			!this._devApi
+			!this._devApi ||
+			this.state.connection === CONNECTION_STATUS.ONLINE
 		) {
 			return;
 		}
+
+		console.debug("Reconnection runned");
+
+		this._stopConnection();
 
 		const attemts = this.state.attemts;
 
@@ -204,22 +209,27 @@ export class Panel extends Component {
 			return;
 		}
 
-		this._devApi.tryConnect().then((status) => {
-			clearTimeout(this._reconectionTimeout);
-
-			if (status) {
-				this.onAttach();
-			} else {
-				this.setState({
-					connection: CONNECTION_STATUS.CONNECTION,
-					attemts: attemts + 1,
-				});
-
-				this._reconectionTimeout = setTimeout(() => {
-					this._runReconnection();
-				}, attemts * 300);
-			}
+		this.setState({
+			connection: CONNECTION_STATUS.CONNECTION,
+			attemts: attemts + 1,
 		});
+
+		this._devApi
+			.tryConnect()
+			.catch(() => {
+				return false;
+			})
+			.then((status) => {
+				this._stopConnection();
+
+				if (status) {
+					this.onConnectingDone();
+				} else {
+					this._reconectionTimeout = setTimeout(() => {
+						this._runReconnection();
+					}, attemts * 300);
+				}
+			});
 	}
 
 	render() {
@@ -232,7 +242,22 @@ export class Panel extends Component {
 				{name}
 			</Button>
 		));
-		const ActiveTab = _TABS[this.state.currentTab];
+
+		const tabs = Object.keys(_TABS).map((name) => {
+			const Tab = _TABS[name];
+			const current = this.state.currentTab === name;
+
+			return (
+				<Tab
+					key={name}
+					ref={current ? this.activeTabRef : undefined}
+					devApi={this._devApi}
+					locked={this.state.connection !== CONNECTION_STATUS.ONLINE}
+					active={current}
+				/>
+			);
+		});
+
 		let Status;
 
 		switch (this.state.connection) {
@@ -252,7 +277,7 @@ export class Panel extends Component {
 			default: {
 				Status = (
 					<Button onClick={() => this.onReconnect()} className="red">
-						<span>OFFLINNE</span>
+						<span>OFFLINE</span>
 						<Icon>cached</Icon>
 					</Button>
 				);
@@ -273,11 +298,7 @@ export class Panel extends Component {
 					</div>
 					{Status}
 				</nav>
-				<ActiveTab
-					ref={this.activeTabRef}
-					devApi={this._devApi}
-					locked={this.state.connection !== CONNECTION_STATUS.ONLINE}
-				/>
+				{tabs}
 			</Fragment>
 		);
 	}

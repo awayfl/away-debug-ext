@@ -10,7 +10,7 @@ export const Separator = styled.div`
 export const Section = styled.div`
 	height: calc(100% - var(--root-nav));
 	width: 100%;
-	display: flex;
+	display: ${ props => props.active ? 'flex' : 'none'};
 	flex-direction: column;
 	background-color: #222;
 

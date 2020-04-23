@@ -224,7 +224,7 @@ export class Logger extends Component {
 		const { _itemList, _renderRow, _measureRow, _onResize } = this;
 
 		return (
-			<Section locked={this.props.locked}>
+			<Section locked={this.props.locked} active = {this.props.active}>
 				<LoggerNav
 					isCapture={isCapture}
 					isLocked={this.props.locked}
