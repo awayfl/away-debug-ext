@@ -9,7 +9,7 @@ export const Label = styled.div`
 	justify-content: center;
 	font-size: 16px;
 	user-select: none;
-	
+	flex-shrink: 0;
 	background-color: #222;
 	color: #ccc;
 	

@@ -1,13 +1,13 @@
 import "react-virtualized/styles.css";
 
-import React, { Component, createRef, Fragment, createContext } from "react";
+import React, { Component, Fragment, createRef } from "react";
 
 import { Button } from "./elements/Button.jsx";
 import { Logger } from "./Tabs/Logger.jsx";
 import { Main } from "./Tabs/Main.jsx";
 
 import styled from "styled-components";
-import { RolledIcon, Icon } from "./elements/SectionItems.jsx";
+import { RolledIcon, Icon, Section } from "./elements/SectionItems.jsx";
 
 const CONNECTION_STATUS = {
 	OFFLINE: "offline",
@@ -16,10 +16,24 @@ const CONNECTION_STATUS = {
 };
 
 const ATTEMTS = 10;
-const _TABS = {
-	Info: Main,
-	Logger: Logger,
-};
+const _TABS = [
+	{
+		tab: Main,
+		name: "Info",
+		icon: undefined,
+	},
+	{
+		tab: Logger,
+		name: "Logger",
+		icon: undefined,
+	},
+	{
+		tab: () => <div>Settings</div>,
+		name: "Settings",
+		icon: "settings",
+		align: "right",
+	},
+];
 
 const Logo = styled.div`
 	background-image: url("./gfx/icon128.png");
@@ -78,8 +92,10 @@ export class Panel extends Component {
 	constructor(props) {
 		super(props);
 
+		const currentTab = localStorage.getItem('currentTab') || _TABS[0].name;
+
 		this.state = {
-			currentTab: Object.keys(_TABS)[0],
+			currentTab,
 			connection: CONNECTION_STATUS.OFFLINE,
 			attemts: 0,
 			error: "",
@@ -89,7 +105,7 @@ export class Panel extends Component {
 		 * @type {IDevToolAPI}
 		 */
 		this._devApi = undefined;
-		this.activeTabRef = createRef();
+		this.activeTab = createRef();
 		this._reconectionTimeout = undefined;
 
 		window.PANEL_API = {
@@ -104,7 +120,7 @@ export class Panel extends Component {
 	 * @param {string} type
 	 */
 	onEmit(type, data) {
-		const tab = this.activeTabRef.current;
+		const tab = this.activeTab.current;
 		tab.onEmit && tab.onEmit(type, data);
 	}
 
@@ -131,7 +147,7 @@ export class Panel extends Component {
 				});
 		};
 
-		const tab = this.activeTabRef.current;
+		const tab = this.activeTab.current;
 		tab.onInit && tab.onInit(this._devApi);
 
 		this._runReconnection();
@@ -139,7 +155,7 @@ export class Panel extends Component {
 
 	// emited from dev provider
 	onDetach(reconnect = true) {
-		const tab = this.activeTabRef.current;
+		const tab = this.activeTab.current;
 
 		tab.onDetach && tab.onDetach(reconnect);
 
@@ -156,7 +172,7 @@ export class Panel extends Component {
 	}
 
 	onConnectingDone() {
-		const tab = this.activeTabRef.current;
+		const tab = this.activeTab.current;
 
 		tab.onAttach && tab.onAttach();
 
@@ -166,10 +182,12 @@ export class Panel extends Component {
 		});
 	}
 
-	switchTab(name) {
+	switchTab(currentTab) {
 		this.setState({
-			currentTab: name,
+			currentTab,
 		});
+
+		localStorage.setItem("currentTab", currentTab);
 	}
 
 	onReconnect() {
@@ -233,28 +251,32 @@ export class Panel extends Component {
 	}
 
 	render() {
-		const buttons = Object.keys(_TABS).map((name) => (
-			<Button
-				key={name}
-				onClick={() => this.switchTab(name)}
-				className={this.state.currentTab === name ? "active" : ""}
-			>
-				{name}
-			</Button>
-		));
+		const buttons = [];
+		const tabs = [];
 
-		const tabs = Object.keys(_TABS).map((name) => {
-			const Tab = _TABS[name];
-			const current = this.state.currentTab === name;
+		_TABS.forEach(({ tab: Tab, icon, name, align }) => {
+			const active = this.state.currentTab === name;
+			const locked = this.state.connection !== CONNECTION_STATUS.ONLINE;
+			const className = `${active ? "active" : ""} ${ icon ? ('tiny ' + align) : ""}`;
 
-			return (
-				<Tab
+			tabs.push(
+				<Section active={active} locked={locked} key={name}>
+					<Tab
+						locked={locked}
+						devApi={this._devApi}
+						ref = {active ? this.activeTab : undefined}
+					/>
+				</Section>
+			);
+
+			buttons.push(
+				<Button
 					key={name}
-					ref={current ? this.activeTabRef : undefined}
-					devApi={this._devApi}
-					locked={this.state.connection !== CONNECTION_STATUS.ONLINE}
-					active={current}
-				/>
+					onClick={() => this.switchTab(name)}
+					className={ className }
+				>
+					{ icon ? (<Icon>{icon}</Icon>) : name }
+				</Button>
 			);
 		});
 

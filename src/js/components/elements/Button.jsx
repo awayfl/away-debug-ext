@@ -25,4 +25,8 @@ export const Button = styled(Label)`
 	&.tiny {
 		min-width: 48px;
 	}
+	
+	&.right {
+		margin-left: auto;
+	}
 `;

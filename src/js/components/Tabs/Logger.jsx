@@ -1,4 +1,4 @@
-import React, { Component, createRef } from "react";
+import React, { Component, createRef, Fragment } from "react";
 import { Button } from "../elements/Button.jsx";
 import { Label } from "../elements/Label.jsx";
 import { Icon, Section, ListBox, Blink, Separator } from "../elements/SectionItems.jsx";
@@ -224,7 +224,7 @@ export class Logger extends Component {
 		const { _itemList, _renderRow, _measureRow, _onResize } = this;
 
 		return (
-			<Section locked={this.props.locked} active = {this.props.active}>
+			<Fragment>
 				<LoggerNav
 					isCapture={isCapture}
 					isLocked={this.props.locked}
@@ -257,7 +257,7 @@ export class Logger extends Component {
 				<Footer>
 					<span>Lines: {_itemList.length}</span>
 				</Footer>
-			</Section>
+			</Fragment>
 		);
 	}
 }

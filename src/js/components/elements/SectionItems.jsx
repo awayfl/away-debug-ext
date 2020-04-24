@@ -23,8 +23,8 @@ export const ListBox = styled.div`
 	flex-grow: 1;
 `;
 
-export const Icon = ({ children, className, onClick }) => (
-	<span className={`${className} material-icons`} onClick = {onClick} >{children}</span>
+export const Icon = ({ children, className = "", onClick, style = {} }) => (
+	<span className={`${className} material-icons`} style = {style} onClick = {onClick} >{children}</span>
 );
 
 export const RolledIcon = styled(Icon)`

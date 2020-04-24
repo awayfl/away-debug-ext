@@ -6,7 +6,7 @@ import Theme from "./../elements/monokai";
 
 Theme.base00 = "none";
 
-const Wrap = styled(Section)`
+const Wrap = styled.div`
 	padding: 1em;
 `;
 
@@ -106,7 +106,7 @@ export class Main extends Component {
 		const { info } = this.state;
 
 		return (
-			<Wrap style = {{opacity: this.props.locked ? 0.5 : 1}} active = {this.props.active}>
+			<Wrap style = {{opacity: this.props.locked ? 0.5 : 1}} >
 				<InfoPallete name="FILE" fields={info.file} />
 				<InfoPallete name="RUNTIME" fields={info.runtime} />
 

@@ -55,7 +55,7 @@ function Init() {
 		// background -> page-api
 		port.onMessage.addListener(_postMesage);
 		port.onDisconnect.addListener(()=>{
-			console.log("DEVTOOL DISCONNECTED");
+			//console.log("DEVTOOL DISCONNECTED");
 		
 			port.onMessage.removeListener(_postMesage);
 		})
@@ -67,6 +67,6 @@ function Init() {
 	(document.head || document.documentElement).appendChild(injection);
 
 	injection.onload = function () {
-		//injection.remove();
+		injection.remove();
 	};
 }
