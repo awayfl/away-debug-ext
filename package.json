@@ -1,6 +1,6 @@
 {
 	"name": "away-debug-ext",
-	"version": "0.1.6",
+	"version": "0.1.7",
 	"description": "AWAY Debug tools for Chrome",
 	"main": "index.js",
 	"scripts": {
