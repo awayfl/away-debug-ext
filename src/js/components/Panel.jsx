@@ -260,6 +260,8 @@ export class Panel extends Component {
 		const buttons = [];
 		const tabs = [];
 
+		const lastActiveTab = this.activeTab.current;
+
 		_TABS.forEach(({ tab: Tab, icon, name, align }) => {
 			const active = this.state.currentTab === name;
 			const locked = this.state.connection !== CONNECTION_STATUS.ONLINE;
@@ -268,9 +270,10 @@ export class Panel extends Component {
 			tabs.push(
 				<Section active={active} locked={locked} key={name}>
 					<Tab
-						locked={locked}
-						devApi={this._devApi}
+						locked = {locked}
+						devApi = {this._devApi}
 						ref = {active ? this.activeTab : undefined}
+						active = {active}
 					/>
 				</Section>
 			);
@@ -285,7 +288,6 @@ export class Panel extends Component {
 				</Button>
 			);
 		});
-
 		let Status;
 
 		switch (this.state.connection) {

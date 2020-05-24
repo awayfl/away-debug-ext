@@ -66,13 +66,36 @@ export class Main extends Component {
 		 * @type {IDevToolAPI}
 		 */
 		this._devAPI = props.devApi;
+		this.active = false;
 
 		if(this._devAPI) {
-			//this.onAttach();
+			this.onAttach();
 		}
 	}
 
-	
+	componentDidUpdate() {
+		
+		if(this.props.active !== this.active && this.props.active){
+			this._devAPI = this.props.devApi;
+			
+			this._devAPI.getAppInfo().then((info) => {
+				this._prepareInfo(info);
+			});
+		}
+
+		this.active = this.props.active;
+	}
+
+	onActivate() {
+		this._devAPI.getAppInfo().then((info) => {
+			this._prepareInfo(info);
+		});
+	}
+
+	onDeactivate() {
+
+	}
+
 	onDetach() {
 		//this._prepareInfo({});
 	}

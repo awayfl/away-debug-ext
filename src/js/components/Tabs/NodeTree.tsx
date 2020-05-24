@@ -85,7 +85,7 @@ const _Toggler = ({ state, ...props }) => {
 };
 
 const Toggler = styled(_Toggler)`
-	width: 1em;
+	width: .75em;
 	display: inline-block;
 	text-align: center;
 	margin-right: 2px;
@@ -192,6 +192,7 @@ interface IState {
 
 interface IProp {
 	active: boolean;
+	locked: boolean;
 	devApi: IDevToolAPI;
 }
 
@@ -213,6 +214,7 @@ export class NodeTree extends Component<IProp, IState> {
 	treeView: React.RefObject<any> = React.createRef();
 	treeWrap: React.RefObject<HTMLDivElement> = React.createRef();
 	itemsContextMenu: IContextMenu;
+	active: boolean = false;
 
 	constructor(props: IProp) {
 		super(props);
@@ -256,10 +258,21 @@ export class NodeTree extends Component<IProp, IState> {
 		this._devAPI = devApi;
 	}
 
+	componentDidUpdate() {
+		
+		if(this.props.active !== this.active && this.props.active){
+			this._devAPI = this.props.devApi;
+			
+			this.onAttach();
+		}
+		this.active = this.props.active;
+	}
+
 	onAttach() {
 		this._getNodeTree().then((data) => {
 			this.setState({
 				tree: data[0],
+				height: this.treeWrap.current.offsetHeight,
 			});
 			this.treeView.current.tree.loadData(data);
 			console.log(data);
@@ -267,6 +280,8 @@ export class NodeTree extends Component<IProp, IState> {
 	}
 
 	async _getNodeTree() {
+		if(!this._devAPI) {return Promise.resolve([])};
+
 		return this._devAPI.directCall("getNodeTree", []) as Promise<INodeItem>;
 	}
 
@@ -368,8 +383,9 @@ export class NodeTree extends Component<IProp, IState> {
 			toggleState = node.state.open ? TogglState.OPEN : TogglState.CLOSE;
 		}
 
-		if(node.index === 0) {
+		if(node.parentId === 0 && node.state.depth === 0 && !node.state.willOpen) {
 			tree.openNode(node);
+			node.state.willOpen = true;
 		}
 
 		const trigNode = () => {
@@ -450,7 +466,7 @@ export class NodeTree extends Component<IProp, IState> {
 		} = this.state;
 
 		return (
-			<Wrap active={true}>
+			<Wrap active={!this.props.locked} >
 				<nav className="sub">
 					<Button onClick={() => this.onAttach()}>REBUILD</Button>
 					<Button
