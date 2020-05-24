@@ -364,12 +364,12 @@ export class NodeTree extends Component<IProp, IState> {
 
 		let toggleState = TogglState.NONE;
 
-		if (!node.parent) {
-			node.state = {open: true};
-		}
-
 		if (hasChildren) {
 			toggleState = node.state.open ? TogglState.OPEN : TogglState.CLOSE;
+		}
+
+		if(node.index === 0) {
+			tree.openNode(node);
 		}
 
 		const trigNode = () => {
@@ -403,18 +403,11 @@ export class NodeTree extends Component<IProp, IState> {
 			>
 				<Toggler state={toggleState} onClick={trigNode} />
 				<NodeBoxer>
-					<Label>type:</Label>
-					<span>{type}</span>
+					<Label>[{type}]</Label> 
+					<span>{node.name}</span>
 
 					<Label>id:</Label>
 					<span>{node.id}</span>
-
-					{node.name && (
-						<Fragment>
-							<Label>name:</Label>
-							<span>{node.name}</span>
-						</Fragment>
-					)}
 
 					<Icon
 						className={"last clickable"}

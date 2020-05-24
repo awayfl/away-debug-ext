@@ -808,24 +808,24 @@ var e=require("is-object"),o=require("is-window");function n(n){return!(!e(n)||!
 },{"prop-types":"D9Od","react":"n8MK","infinite-tree":"aoFe","react-tiny-virtual-list":"V066"}],"oXFv":[function(require,module,exports) {
 "use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.default=void 0;var e=t(require("./InfiniteTree"));function t(e){return e&&e.__esModule?e:{default:e}}var r=e.default;exports.default=r;
 },{"./InfiniteTree":"RbEK"}],"IKo5":[function(require,module,exports) {
-"use strict";var e=this&&this.__awaiter||function(e,t,n,i){return new(n||(n=Promise))(function(r,a){function l(e){try{s(i.next(e))}catch(t){a(t)}}function o(e){try{s(i.throw(e))}catch(t){a(t)}}function s(e){var t;e.done?r(e.value):(t=e.value,t instanceof n?t:new n(function(e){e(t)})).then(l,o)}s((i=i.apply(e,t||[])).next())})},t=this&&this.__rest||function(e,t){var n={};for(var i in e)Object.prototype.hasOwnProperty.call(e,i)&&t.indexOf(i)<0&&(n[i]=e[i]);if(null!=e&&"function"==typeof Object.getOwnPropertySymbols){var r=0;for(i=Object.getOwnPropertySymbols(e);r<i.length;r++)t.indexOf(i[r])<0&&Object.prototype.propertyIsEnumerable.call(e,i[r])&&(n[i[r]]=e[i[r]])}return n},n=this&&this.__importStar||function(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t.default=e,t},i=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});const r=n(require("react")),a=i(require("react-infinite-tree")),l=i(require("styled-components")),o=require("../elements/Button"),s=require("../elements/SectionItems.jsx"),d=l.default.div`
+"use strict";var e=this&&this.__awaiter||function(e,t,n,i){return new(n||(n=Promise))(function(r,a){function o(e){try{s(i.next(e))}catch(t){a(t)}}function l(e){try{s(i.throw(e))}catch(t){a(t)}}function s(e){var t;e.done?r(e.value):(t=e.value,t instanceof n?t:new n(function(e){e(t)})).then(o,l)}s((i=i.apply(e,t||[])).next())})},t=this&&this.__rest||function(e,t){var n={};for(var i in e)Object.prototype.hasOwnProperty.call(e,i)&&t.indexOf(i)<0&&(n[i]=e[i]);if(null!=e&&"function"==typeof Object.getOwnPropertySymbols){var r=0;for(i=Object.getOwnPropertySymbols(e);r<i.length;r++)t.indexOf(i[r])<0&&Object.prototype.propertyIsEnumerable.call(e,i[r])&&(n[i[r]]=e[i[r]])}return n},n=this&&this.__importStar||function(e){if(e&&e.__esModule)return e;var t={};if(null!=e)for(var n in e)Object.hasOwnProperty.call(e,n)&&(t[n]=e[n]);return t.default=e,t},i=this&&this.__importDefault||function(e){return e&&e.__esModule?e:{default:e}};Object.defineProperty(exports,"__esModule",{value:!0});const r=n(require("react")),a=i(require("react-infinite-tree")),o=i(require("styled-components")),l=require("../elements/Button"),s=require("../elements/SectionItems.jsx"),c=o.default.div`
 	display: flex;
 	flex-direction: row;
 	height: 100%;
 	width: 100%;
-`,c=l.default.div`
+`,d=o.default.div`
 	min-width: 200px;
 	display: flex;
 	flex-direction: column;
 	-webkit-box-flex: 1;
 	flex-grow: 1;
-`,u=l.default.div`
+`,u=o.default.div`
 	height: 100%;
 	display: flex;
 	flex-direction: column;
 	opacity: ${e=>e.active?"1":"0.5"};
 	pointer-events: ${e=>e.active?"":"none"};
-`,h=30,f=l.default.div`
+`,h=30,f=o.default.div`
 	cursor: default;
 
 	width: 100%;
@@ -854,12 +854,12 @@ var e=require("is-object"),o=require("is-window");function n(n){return!(!e(n)||!
 			visibility: inherit;
 		}
 	}
-`,p=e=>{var{state:n}=e,i=t(e,["state"]);let a="";switch(n){case g.OPEN:a="expand_more";break;case g.CLOSE:a="chevron_right"}return r.default.createElement(s.Icon,Object.assign({},i),a)},m=l.default(p)`
+`,p=e=>{var{state:n}=e,i=t(e,["state"]);let a="";switch(n){case b.OPEN:a="expand_more";break;case b.CLOSE:a="chevron_right"}return r.default.createElement(s.Icon,Object.assign({},i),a)},m=o.default(p)`
 	width: 1em;
 	display: inline-block;
 	text-align: center;
 	margin-right: 2px;
-`,x=l.default.div`
+`,x=o.default.div`
 	display: flex;
 	flex-direction: row;
 	align-self: flex-end;
@@ -869,10 +869,18 @@ var e=require("is-object"),o=require("is-window");function n(n){return!(!e(n)||!
 		margin-left: auto;
 		padding: 0 1em;
 	}
-`,v=l.default.span`
+	
+	& > .clickable {
+		cursor: pointer;
+
+		&:hover {
+			opacity: 0.8;
+		}
+	}
+`,v=o.default.span`
 	color: #888;
 	padding: 0 0.5em;
-`;var g;!function(e){e[e.NONE=0]="NONE",e[e.OPEN=1]="OPEN",e[e.CLOSE=2]="CLOSE"}(g||(g={}));const E=l.default.div`
+`;var b;!function(e){e[e.NONE=0]="NONE",e[e.OPEN=1]="OPEN",e[e.CLOSE=2]="CLOSE"}(b||(b={}));const E=o.default.div`
 	display: ${({active:e})=>e?"flex":"none"};
 	flex-direction: column;
 	min-width: 200px;
@@ -882,7 +890,7 @@ var e=require("is-object"),o=require("is-window");function n(n){return!(!e(n)||!
 	user-select: none;
 	border: 1px solid #555;
 	background: #222;
-`,w=l.default.div`
+`,g=o.default.div`
 	font-size: 14px;
 	line-height: 14px;
 	width: 100%;
@@ -890,6 +898,8 @@ var e=require("is-object"),o=require("is-window");function n(n){return!(!e(n)||!
 	padding: 0.5em 1em;
 	background: #222;
 	cursor: pointer;
+	pointer-events: ${({active:e})=>e?"auto":"none"};
+	opacity: ${({active:e})=>e?"1":"0.5"};
 
 	border: 1px solid transparent;
 
@@ -897,7 +907,7 @@ var e=require("is-object"),o=require("is-window");function n(n){return!(!e(n)||!
 		background: #111;
 		border: 1px solid #555;
 	}
-`;exports.ContextMeny=(({items:e=[],pos:t,active:n,onItemClicked:i})=>{const a=e.map(e=>r.default.createElement(w,{key:e.id,onClick:()=>i(e.id)},e.title));return r.default.createElement(E,{x:t.x,y:t.y,active:n&&!!e.length},a)});class y extends r.Component{constructor(e){super(e),this.treeView=r.default.createRef(),this.treeWrap=r.default.createRef(),this.state={watched:!1,height:400,tree:{},contextMenuItems:[],contextMenuActive:!1,contextMenuPos:{x:0,y:0},contextMenuHandler:e=>e},this.createContextMenu=this.createContextMenu.bind(this),this._renderTree=this._renderTree.bind(this),this._devAPI=e.devApi,this.itemsContextMenu={items:[{id:"expose",title:"Expose to Console"}],handler:this.onItemContextMenu.bind(this),owner:null},window.addEventListener("resize",()=>{this.setState(()=>({height:this.treeWrap.current.offsetHeight}))})}onEmit(e,t){}onInit(e){this._devAPI=e}onAttach(){this._getNodeTree().then(e=>{this.setState({tree:e[0]}),this.treeView.current.tree.loadData(e),console.log(e)})}_getNodeTree(){return e(this,void 0,void 0,function*(){return this._devAPI.directCall("getNodeTree",[])})}_getNodePath(e){const t=[];let n=e;for(;n&&n.id;)t.push(n.id),n=n.parent;return t.reverse(),t}onDetach(){this.setState({watched:!1})}onItemContextMenu(e,t){const n=t.owner;if(n)switch(e){case"expose":this._devAPI.directCall("dirObjectByIds",[this._getNodePath(n)])}}createContextMenu(e,t){e.preventDefault(),document.addEventListener("click",e=>{this.setState({contextMenuActive:!1}),e.preventDefault()},{once:!0}),this.setState({contextMenuItems:t.items,contextMenuPos:{x:e.pageX,y:e.pageY},contextMenuActive:!0,contextMenuHandler:e=>t.handler(e,t)})}doWatch(){const e=this.state.watched;this.setState({watched:!e})}_renderTree({tree:e,node:t}){const n=t.hasChildren();let i=g.NONE;n&&(i=t.state.open?g.OPEN:g.CLOSE);let a=t.type;return a&&a.startsWith("[")&&(a=a.substring(7,a.length-1)),r.default.createElement(f,{selected:t.state.selected,depth:t.state.depth,onClick:n=>{e.selectNode(t)},onContextMenu:e=>this.createContextMenu(e,Object.assign(Object.assign({},this.itemsContextMenu),{owner:t}))},r.default.createElement(m,{state:i,onClick:()=>{i===g.CLOSE?e.openNode(t):i===g.OPEN&&e.closeNode(t)}}),r.default.createElement(x,null,r.default.createElement(v,null,"type:"),r.default.createElement("span",null,a),r.default.createElement(v,null,"id:"),r.default.createElement("span",null,t.id),t.name&&r.default.createElement(r.Fragment,null,r.default.createElement(v,null,"name:"),r.default.createElement("span",null,t.name)),t.children.length&&r.default.createElement("div",{className:"last"},r.default.createElement(v,null,"childs:"),r.default.createElement("span",null,t.children.length))))}componentDidMount(){this.setState(()=>({height:this.treeWrap.current.offsetHeight}))}render(){const{tree:e,watched:t,height:n,contextMenuActive:i,contextMenuItems:l,contextMenuPos:h,contextMenuHandler:f}=this.state;return r.default.createElement(u,{active:!0},r.default.createElement("nav",{className:"sub"},r.default.createElement(o.Button,{onClick:()=>this.onAttach()},"REBUILD"),r.default.createElement(o.Button,{className:t?"active":"",onClick:()=>this.doWatch()},"WATCH",r.default.createElement(s.Blink,{className:t?"blink":""},"fiber_manual_record"))),r.default.createElement(d,null,r.default.createElement("div",{style:{width:"100%"},ref:this.treeWrap},r.default.createElement(a.default,{width:"100%",height:n,rowHeight:30,data:e,autoOpen:!0,style:{width:"100%"},ref:this.treeView},this._renderTree)),r.default.createElement(c,null)),r.default.createElement(exports.ContextMeny,{pos:h,active:i,items:l,onItemClicked:f}))}}exports.NodeTree=y;
+`;var w;exports.ContextMeny=(({items:e={},pos:t,active:n,onItemClicked:i})=>{const a=Object.keys(e).map(t=>{const{title:n,enable:a=!0}=e[t];return r.default.createElement(g,{key:t,onClick:()=>i(t),active:a},n)});return r.default.createElement(E,{x:t.x,y:t.y,active:n&&!!a.length},a)}),function(e){e.HIDE="hide",e.SHOW="show",e.REMOVE="remove",e.EXPOSE="expose"}(w||(w={}));class O extends r.Component{constructor(e){super(e),this.treeView=r.default.createRef(),this.treeWrap=r.default.createRef(),this.state={watched:!1,height:400,tree:{},contextMenuItems:{},contextMenuActive:!1,contextMenuPos:{x:0,y:0},contextMenuHandler:(e,t)=>e},this.createContextMenu=this.createContextMenu.bind(this),this._renderTree=this._renderTree.bind(this),this._devAPI=e.devApi,this.itemsContextMenu={items:{[w.EXPOSE]:{title:"Expose to Console"},[w.HIDE]:{title:"Hide node"},[w.SHOW]:{title:"Show node"},[w.REMOVE]:{title:"Remove from stage"}},handler:this.onItemContextMenu.bind(this),owner:null},window.addEventListener("resize",()=>{this.setState(()=>({height:this.treeWrap.current.offsetHeight}))})}onEmit(e,t){}onInit(e){this._devAPI=e}onAttach(){this._getNodeTree().then(e=>{this.setState({tree:e[0]}),this.treeView.current.tree.loadData(e),console.log(e)})}_getNodeTree(){return e(this,void 0,void 0,function*(){return this._devAPI.directCall("getNodeTree",[])})}_getNodePath(e){const t=[];let n=e;for(;n&&n.id;)t.push(n.id),n=n.parent;return t.reverse(),t}onDetach(){this.setState({watched:!1})}doObjectMethodCall(e,t,...n){const i=this._getNodePath(t);switch(e){case w.EXPOSE:this._devAPI.directCall("dirObjectByIds",[i]);break;case w.SHOW:case w.HIDE:{const n=e===w.SHOW;this._devAPI.directCall("applyPropsByIds",[i,{visible:n}]),this.treeView.current.tree.updateNode(t,Object.assign(Object.assign({},t),{visible:n}),{shallowRendering:!0});break}case w.REMOVE:this._devAPI.directCall("removeObjectByIds",[i]),this.treeView.current.tree.removeNode(t)}}onItemContextMenu(e,t){const n=t.owner;n&&this.doObjectMethodCall(e,n)}createContextMenu(e,t){e.preventDefault(),document.addEventListener("click",e=>{this.setState({contextMenuActive:!1}),e.preventDefault()},{once:!0});const n=t.items;n[w.HIDE].enable=t.owner.visible,n[w.SHOW].enable=!t.owner.visible,this.setState({contextMenuItems:n,contextMenuPos:{x:e.pageX,y:e.pageY},contextMenuActive:!0,contextMenuHandler:e=>t.handler(e,t)})}doWatch(){const e=this.state.watched;this.setState({watched:!e})}_renderTree({tree:e,node:t}){const n=t.hasChildren();let i=b.NONE;n&&(i=t.state.open?b.OPEN:b.CLOSE),0===t.index&&e.openNode(t);let a=t.type;return a&&a.startsWith("[")&&(a=a.substring(7,a.length-1)),r.default.createElement(f,{selected:t.state.selected,depth:t.state.depth,onClick:n=>{e.selectNode(t)},onContextMenu:e=>this.createContextMenu(e,Object.assign(Object.assign({},this.itemsContextMenu),{owner:t}))},r.default.createElement(m,{state:i,onClick:()=>{i===b.CLOSE?e.openNode(t):i===b.OPEN&&e.closeNode(t)}}),r.default.createElement(x,null,r.default.createElement(v,null,"[",a,"]"),r.default.createElement("span",null,t.name),r.default.createElement(v,null,"id:"),r.default.createElement("span",null,t.id),r.default.createElement(s.Icon,{className:"last clickable",onClick:()=>this.doObjectMethodCall(t.visible?w.HIDE:w.SHOW,t)},t.visible?"visibility":"visibility_off"),r.default.createElement(v,null,"childs:"),r.default.createElement("span",{style:{minWidth:"2em"}},t.children.length)))}componentDidMount(){this.setState(()=>({height:this.treeWrap.current.offsetHeight}))}render(){const{tree:e,watched:t,height:n,contextMenuActive:i,contextMenuItems:o,contextMenuPos:h,contextMenuHandler:f}=this.state;return r.default.createElement(u,{active:!0},r.default.createElement("nav",{className:"sub"},r.default.createElement(l.Button,{onClick:()=>this.onAttach()},"REBUILD"),r.default.createElement(l.Button,{className:t?"active":"",onClick:()=>this.doWatch()},"WATCH",r.default.createElement(s.Blink,{className:t?"blink":""},"fiber_manual_record"))),r.default.createElement(c,null,r.default.createElement("div",{style:{width:"100%"},ref:this.treeWrap},r.default.createElement(a.default,{width:"100%",height:n,rowHeight:30,data:e,autoOpen:!1,style:{width:"100%"},ref:this.treeView},this._renderTree)),r.default.createElement(d,null)),r.default.createElement(exports.ContextMeny,{pos:h,active:i,items:o,onItemClicked:f}))}}exports.NodeTree=O;
 },{"react":"n8MK","react-infinite-tree":"oXFv","styled-components":"tFSs","../elements/Button":"wTlK","../elements/SectionItems.jsx":"aIqo"}],"Tb5Y":[function(require,module,exports) {
 "use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.Panel=exports.Error=void 0,require("react-virtualized/styles.css");var e=l(require("styled-components")),t=s(require("react")),n=require("./elements/SectionItems.jsx"),o=require("./elements/Button.jsx"),i=require("./Tabs/Logger.jsx"),a=require("./Tabs/Main.jsx"),c=require("./Tabs/NodeTree.tsx");function r(){if("function"!=typeof WeakMap)return null;var e=new WeakMap;return r=function(){return e},e}function s(e){if(e&&e.__esModule)return e;if(null===e||"object"!=typeof e&&"function"!=typeof e)return{default:e};var t=r();if(t&&t.has(e))return t.get(e);var n={},o=Object.defineProperty&&Object.getOwnPropertyDescriptor;for(var i in e)if(Object.prototype.hasOwnProperty.call(e,i)){var a=o?Object.getOwnPropertyDescriptor(e,i):null;a&&(a.get||a.set)?Object.defineProperty(n,i,a):n[i]=e[i]}return n.default=e,t&&t.set(e,n),n}function l(e){return e&&e.__esModule?e:{default:e}}const u={OFFLINE:"offline",ONLINE:"online",CONNECTION:"connection"},d=10,h=[{tab:a.Main,name:"Info",icon:void 0},{tab:i.Logger,name:"Logger",icon:void 0},{tab:c.NodeTree,name:"Tree",icon:void 0},{tab:()=>t.default.createElement("div",null,"Settings"),name:"Settings",icon:"settings",align:"right"}],m=e.default.div`
 	background-image: url("./gfx/icon128.png");
