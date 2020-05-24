@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import InfiniteTree from "react-infinite-tree";
-import styled from "styled-components";
+import styled, { StyledInterface } from "styled-components";
 
 import { Button } from "../elements/Button";
 import { Icon, Blink } from "../elements/SectionItems.jsx";
@@ -101,6 +101,14 @@ const NodeBoxer = styled.div`
 		margin-left: auto;
 		padding: 0 1em;
 	}
+	
+	& > .clickable {
+		cursor: pointer;
+
+		&:hover {
+			opacity: 0.8;
+		}
+	}
 `;
 
 const Label = styled.span`
@@ -134,7 +142,7 @@ const MenyBox = styled.div<{ x: number; y: number; active: boolean }>`
 	background: #222;
 `;
 
-const MenuItem = styled.div`
+const MenuItem = styled.div<{ active: boolean }>`
 	font-size: 14px;
 	line-height: 14px;
 	width: 100%;
@@ -142,6 +150,8 @@ const MenuItem = styled.div`
 	padding: 0.5em 1em;
 	background: #222;
 	cursor: pointer;
+	pointer-events: ${({ active }) => (active ? "auto" : "none")};
+	opacity: ${({ active }) => (active ? "1" : "0.5")};
 
 	border: 1px solid transparent;
 
@@ -150,14 +160,21 @@ const MenuItem = styled.div`
 		border: 1px solid #555;
 	}
 `;
-export const ContextMeny = ({ items = [], pos, active, onItemClicked }) => {
-	const ritems = items.map((e) => (
-		<MenuItem key={e.id} onClick={() => onItemClicked(e.id)}>
-			{e.title}
-		</MenuItem>
-	));
+export const ContextMeny = ({ items = {}, pos, active, onItemClicked }) => {
+	const ritems = Object.keys(items).map((id: string) => {
+		const { title, enable = true } = items[id];
+		return (
+			<MenuItem
+				key={id}
+				onClick={() => onItemClicked(id)}
+				active={enable}
+			>
+				{title}
+			</MenuItem>
+		);
+	});
 	return (
-		<MenyBox x={pos.x} y={pos.y} active={active && !!items.length}>
+		<MenyBox x={pos.x} y={pos.y} active={active && !!ritems.length}>
 			{ritems}
 		</MenyBox>
 	);
@@ -165,10 +182,10 @@ export const ContextMeny = ({ items = [], pos, active, onItemClicked }) => {
 
 interface IState {
 	tree: INodeItem;
-	contextMenuItems: Array<{ id: string; title: string }>;
+	contextMenuItems: { [key: string]: { title: string; enable?: boolean } };
 	contextMenuActive: boolean;
 	contextMenuPos: { x: number; y: number };
-	contextMenuHandler: (e: string) => void;
+	contextMenuHandler: (e: string, other: any) => void;
 	watched: boolean;
 	height: number;
 }
@@ -179,9 +196,16 @@ interface IProp {
 }
 
 interface IContextMenu {
-	items: Array<{ id: string; title: string }>;
-	handler: (id: string) => void;
+	items: { [key: string]: { title: string; enable?: boolean } };
+	handler: (e: string, other: any) => void;
 	owner: any;
+}
+
+const enum OBJECT_METHODS {
+	HIDE = "hide",
+	SHOW = "show",
+	REMOVE = "remove",
+	EXPOSE = "expose",
 }
 
 export class NodeTree extends Component<IProp, IState> {
@@ -197,10 +221,10 @@ export class NodeTree extends Component<IProp, IState> {
 			watched: false,
 			height: 400,
 			tree: {} as INodeItem,
-			contextMenuItems: [],
+			contextMenuItems: {},
 			contextMenuActive: false,
 			contextMenuPos: { x: 0, y: 0 },
-			contextMenuHandler: (e: string) => e,
+			contextMenuHandler: (e: string, other: any) => e,
 		};
 
 		this.createContextMenu = this.createContextMenu.bind(this);
@@ -208,16 +232,22 @@ export class NodeTree extends Component<IProp, IState> {
 		this._devAPI = props.devApi;
 
 		this.itemsContextMenu = {
-			items: [{ id: "expose", title: "Expose to Console" }],
+			items: {
+				[OBJECT_METHODS.EXPOSE]: { title: "Expose to Console" },
+				[OBJECT_METHODS.HIDE]: { title: "Hide node" },
+				[OBJECT_METHODS.SHOW]: { title: "Show node" },
+				[OBJECT_METHODS.REMOVE]: { title: "Remove from stage" },
+			},
+
 			handler: this.onItemContextMenu.bind(this),
 			owner: null,
 		};
 
-		window.addEventListener('resize',()=>{			
+		window.addEventListener("resize", () => {
 			this.setState(() => ({
 				height: this.treeWrap.current.offsetHeight,
 			}));
-		})
+		});
 	}
 
 	onEmit(type: string, data) {}
@@ -243,7 +273,7 @@ export class NodeTree extends Component<IProp, IState> {
 	_getNodePath(node: any) {
 		const ids = [];
 		let n = node;
-		while(n && n.id) {
+		while (n && n.id) {
 			ids.push(n.id);
 			n = n.parent;
 		}
@@ -259,20 +289,40 @@ export class NodeTree extends Component<IProp, IState> {
 		});
 	}
 
-	onItemContextMenu(id: string, declaration: IContextMenu) {
-		const node = declaration.owner;
-
-		if(!node){
-			return;
-		}
-
-		switch(id) {
-			case 'expose': {
-
-				this._devAPI.directCall('dirObjectByIds', [this._getNodePath(node)]);
+	doObjectMethodCall(method: OBJECT_METHODS, node: any, ...args: any[]) {
+		const ids = this._getNodePath(node);
+		switch (method) {
+			case OBJECT_METHODS.EXPOSE: {
+				this._devAPI.directCall("dirObjectByIds", [ids]);
+				break;
+			}
+			case OBJECT_METHODS.SHOW:
+			case OBJECT_METHODS.HIDE: {
+				const visible = method === OBJECT_METHODS.SHOW;
+				this._devAPI.directCall("applyPropsByIds", [ids, { visible }]);
+				this.treeView.current.tree.updateNode(
+					node,
+					{ ...node, visible },
+					{ shallowRendering: true }
+				);
+				break;
+			}
+			case OBJECT_METHODS.REMOVE: {
+				this._devAPI.directCall("removeObjectByIds", [ids]);
+				this.treeView.current.tree.removeNode(node);
 				break;
 			}
 		}
+	}
+
+	onItemContextMenu(id: OBJECT_METHODS, declaration: IContextMenu) {
+		const node = declaration.owner;
+
+		if (!node) {
+			return;
+		}
+
+		this.doObjectMethodCall(id, node);
 	}
 
 	createContextMenu(event: MouseEvent, contextDeclaration: IContextMenu) {
@@ -288,11 +338,17 @@ export class NodeTree extends Component<IProp, IState> {
 			{ once: true }
 		);
 
+		const items = contextDeclaration.items;
+
+		items[OBJECT_METHODS.HIDE].enable = contextDeclaration.owner.visible;
+		items[OBJECT_METHODS.SHOW].enable = !contextDeclaration.owner.visible;
+
 		this.setState({
-			contextMenuItems: contextDeclaration.items,
+			contextMenuItems: items,
 			contextMenuPos: { x: event.pageX, y: event.pageY },
 			contextMenuActive: true,
-			contextMenuHandler: (id) => contextDeclaration.handler(id, contextDeclaration),
+			contextMenuHandler: (id) =>
+				contextDeclaration.handler(id, contextDeclaration),
 		});
 	}
 
@@ -307,6 +363,10 @@ export class NodeTree extends Component<IProp, IState> {
 		const hasChildren = node.hasChildren();
 
 		let toggleState = TogglState.NONE;
+
+		if (!node.parent) {
+			node.state = {open: true};
+		}
 
 		if (hasChildren) {
 			toggleState = node.state.open ? TogglState.OPEN : TogglState.CLOSE;
@@ -356,12 +416,24 @@ export class NodeTree extends Component<IProp, IState> {
 						</Fragment>
 					)}
 
-					{node.children.length && (
-						<div className={"last"}>
-							<Label>childs:</Label>
-							<span>{node.children.length}</span>
-						</div>
-					)}
+					<Icon
+						className={"last clickable"}
+						onClick={() =>
+							this.doObjectMethodCall(
+								node.visible
+									? OBJECT_METHODS.HIDE
+									: OBJECT_METHODS.SHOW,
+								node
+							)
+						}
+					>
+						{node.visible ? "visibility" : "visibility_off"}
+					</Icon>
+
+					<Label>childs:</Label>
+					<span style={{ minWidth: "2em" }}>
+						{node.children.length}
+					</span>
 				</NodeBoxer>
 			</TreeNode>
 		);
@@ -405,7 +477,7 @@ export class NodeTree extends Component<IProp, IState> {
 							height={height}
 							rowHeight={30}
 							data={tree}
-							autoOpen={true}
+							autoOpen={false}
 							style={{ width: "100%" }}
 							ref={this.treeView}
 						>
