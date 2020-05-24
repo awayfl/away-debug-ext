@@ -1,13 +1,13 @@
 import "react-virtualized/styles.css";
+import styled from "styled-components";
 
 import React, { Component, Fragment, createRef } from "react";
-
+import { RolledIcon, Icon, Section } from "./elements/SectionItems.jsx";
 import { Button } from "./elements/Button.jsx";
 import { Logger } from "./Tabs/Logger.jsx";
 import { Main } from "./Tabs/Main.jsx";
+import { NodeTree } from "./Tabs/NodeTree.tsx";
 
-import styled from "styled-components";
-import { RolledIcon, Icon, Section } from "./elements/SectionItems.jsx";
 
 const CONNECTION_STATUS = {
 	OFFLINE: "offline",
@@ -27,6 +27,12 @@ const _TABS = [
 		name: "Logger",
 		icon: undefined,
 	},
+	{
+		tab: NodeTree,
+		name: "Tree",
+		icon: undefined,
+	},
+	
 	{
 		tab: () => <div>Settings</div>,
 		name: "Settings",

@@ -1,8 +1,11 @@
 {
 	"compilerOptions": {
-		"baseUrl": "./src",
-		"target": "ESNext",
+		"baseUrl": "./src/",
+		"target": "ES2015",
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
 		"jsx": "react",
+		"allowJs": true,
 		"paths": {
 			"~*": ["./*"]
 		}
