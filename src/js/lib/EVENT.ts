@@ -6,5 +6,6 @@ export const enum EVENT {
 	LOG_BLOB = 'log',
 	LOG_INIT = 'log-init',
 	LOG_STOP = 'log-stop',
-	CALL = 'call'
+	CALL = 'call',
+	TRACK_BOUNDS = 'track-bounds'
 };

@@ -4,6 +4,7 @@ import styled, { StyledInterface } from "styled-components";
 
 import { Button } from "../elements/Button";
 import { Icon, Blink } from "../elements/SectionItems.jsx";
+import { Panel } from "../Panel";
 
 const Split = styled.div`
 	display: flex;
@@ -85,7 +86,7 @@ const _Toggler = ({ state, ...props }) => {
 };
 
 const Toggler = styled(_Toggler)`
-	width: .75em;
+	width: 0.75em;
 	display: inline-block;
 	text-align: center;
 	margin-right: 2px;
@@ -101,7 +102,7 @@ const NodeBoxer = styled.div`
 		margin-left: auto;
 		padding: 0 1em;
 	}
-	
+
 	& > .clickable {
 		cursor: pointer;
 
@@ -187,6 +188,7 @@ interface IState {
 	contextMenuPos: { x: number; y: number };
 	contextMenuHandler: (e: string, other: any) => void;
 	watched: boolean;
+	boundsTracked: boolean;
 	height: number;
 }
 
@@ -194,6 +196,7 @@ interface IProp {
 	active: boolean;
 	locked: boolean;
 	devApi: IDevToolAPI;
+	panel: Panel;
 }
 
 interface IContextMenu {
@@ -215,12 +218,14 @@ export class NodeTree extends Component<IProp, IState> {
 	treeWrap: React.RefObject<HTMLDivElement> = React.createRef();
 	itemsContextMenu: IContextMenu;
 	active: boolean = false;
+	wathInterval: number = null;
 
 	constructor(props: IProp) {
 		super(props);
 
 		this.state = {
 			watched: false,
+			boundsTracked: false,
 			height: 400,
 			tree: {} as INodeItem,
 			contextMenuItems: {},
@@ -250,6 +255,8 @@ export class NodeTree extends Component<IProp, IState> {
 				height: this.treeWrap.current.offsetHeight,
 			}));
 		});
+
+		this.wathInterval = null;
 	}
 
 	onEmit(type: string, data) {}
@@ -259,10 +266,9 @@ export class NodeTree extends Component<IProp, IState> {
 	}
 
 	componentDidUpdate() {
-		
-		if(this.props.active !== this.active && this.props.active){
+		if (this.props.active !== this.active && this.props.active) {
 			this._devAPI = this.props.devApi;
-			
+
 			this.onAttach();
 		}
 		this.active = this.props.active;
@@ -275,12 +281,13 @@ export class NodeTree extends Component<IProp, IState> {
 				height: this.treeWrap.current.offsetHeight,
 			});
 			this.treeView.current.tree.loadData(data);
-			console.log(data);
 		});
 	}
 
 	async _getNodeTree() {
-		if(!this._devAPI) {return Promise.resolve([])};
+		if (!this._devAPI) {
+			return Promise.resolve([]);
+		}
 
 		return this._devAPI.directCall("getNodeTree", []) as Promise<INodeItem>;
 	}
@@ -301,6 +308,7 @@ export class NodeTree extends Component<IProp, IState> {
 	onDetach() {
 		this.setState({
 			watched: false,
+			boundsTracked: false,
 		});
 	}
 
@@ -369,9 +377,42 @@ export class NodeTree extends Component<IProp, IState> {
 
 	doWatch() {
 		const w = this.state.watched;
+
+		if (w) {
+			clearInterval(this.wathInterval);
+			this.wathInterval = null;
+		} else {
+			this.wathInterval = setInterval(() => {
+				this.onAttach();
+			}, 100);
+		}
+
 		this.setState({
 			watched: !w,
 		});
+	}
+
+	doTrackBounds() {
+		const b = this.state.boundsTracked;
+
+		if (b) {
+			this._devAPI.trackBounds("dispose", {});
+
+			this.setState({
+				boundsTracked: false,
+			});
+		} else {
+			this._devAPI
+				.trackBounds("init", {})
+				.then((e) => {
+					this.setState({
+						boundsTracked: true,
+					});
+				})
+				.catch((error) => {
+					this.props.panel.fireError(error);
+				});
+		}
 	}
 
 	_renderTree({ tree, node }) {
@@ -383,7 +424,11 @@ export class NodeTree extends Component<IProp, IState> {
 			toggleState = node.state.open ? TogglState.OPEN : TogglState.CLOSE;
 		}
 
-		if(node.parentId === 0 && node.state.depth === 0 && !node.state.willOpen) {
+		if (
+			node.parentId === 0 &&
+			node.state.depth === 0 &&
+			!node.state.willOpen
+		) {
 			tree.openNode(node);
 			node.state.willOpen = true;
 		}
@@ -419,7 +464,7 @@ export class NodeTree extends Component<IProp, IState> {
 			>
 				<Toggler state={toggleState} onClick={trigNode} />
 				<NodeBoxer>
-					<Label>[{type}]</Label> 
+					<Label>[{type}]</Label>
 					<span>{node.name}</span>
 
 					<Label>id:</Label>
@@ -458,6 +503,7 @@ export class NodeTree extends Component<IProp, IState> {
 		const {
 			tree,
 			watched,
+			boundsTracked,
 			height,
 			contextMenuActive,
 			contextMenuItems,
@@ -466,7 +512,7 @@ export class NodeTree extends Component<IProp, IState> {
 		} = this.state;
 
 		return (
-			<Wrap active={!this.props.locked} >
+			<Wrap active={!this.props.locked}>
 				<nav className="sub">
 					<Button onClick={() => this.onAttach()}>REBUILD</Button>
 					<Button
@@ -475,6 +521,15 @@ export class NodeTree extends Component<IProp, IState> {
 					>
 						WATCH
 						<Blink className={watched ? "blink" : ""}>
+							fiber_manual_record
+						</Blink>
+					</Button>
+					<Button
+						className={boundsTracked ? "active" : ""}
+						onClick={() => this.doTrackBounds()}
+					>
+						BOUNDS
+						<Blink className={boundsTracked ? "blink" : ""}>
 							fiber_manual_record
 						</Blink>
 					</Button>

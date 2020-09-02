@@ -1,5 +1,6 @@
 import { APIPage } from "./lib/PageAPI";
 import { EVENT } from "./lib/EVENT";
+import { BboxRenderer } from "./bbox";
 
 declare global {
 	interface Window {
@@ -8,11 +9,11 @@ declare global {
 }
 
 (function () {
-
 	console.debug("PAGE API INJECTED");
 
 	// ---------------main -------------
 	const api = new APIPage();
+	const bbox = new BboxRenderer();
 
 	const BATCH_BLOB_TIME = 500;
 	const BATCH_BLOBS = 1000;
@@ -134,11 +135,41 @@ declare global {
 		}
 	}
 
-	api.onFlow(EVENT.DETACH, function () {});
+	function trackBounds({ answer, method, args }) {
+
+		if(!AWAY_DEBUG.getStageCanvas) {
+			return answer ({error: "Bounds debugger not exist on this AWAY Player version."});
+		}
+
+		switch (method) {
+			case "init": {
+				const canvas = AWAY_DEBUG.getStageCanvas();
+
+				if (!canvas) {
+					return answer({ error: "Unknow stage!" });
+				}
+
+				const request = () => AWAY_DEBUG.getNodeTree(true, 0, true);
+				bbox.init(canvas, request, args);
+
+				return answer({ ok: true });
+			}
+
+			case "dispose": {
+				bbox.dispose();
+				answer({ ok: true });
+			}
+		}
+	}
+
+	api.onFlow(EVENT.DETACH, function () {
+		bbox.dispose();
+	});
 	api.onFlow(EVENT.TEST, testOnDebug);
 	api.onFlow(EVENT.LOG_INIT, logInit);
 	api.onFlow(EVENT.LOG_STOP, logStop);
 	api.onFlow(EVENT.CALL, directCall);
+	api.onFlow(EVENT.TRACK_BOUNDS, trackBounds);
 
 	///
 })();

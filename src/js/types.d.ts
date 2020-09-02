@@ -10,6 +10,7 @@ declare interface IDevToolAPI {
 	tryConnect(): Promise<boolean>;
 	getAppInfo(): Promise<any>;
 	directCall(method: string, args: any[]): Promise<any>;
+	trackBounds(method: string, args: any): Promise<any>;
 }
 
 declare interface IPanelAPI {

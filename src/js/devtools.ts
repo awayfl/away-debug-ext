@@ -191,16 +191,32 @@ async function directCall(method: string, args: any[] = []): Promise<any> {
 		});
 }
 
-/**
- * @type {IDevToolAPI}
- */
-const devApi = {
+
+async function trackBounds(method: string, args: any): Promise<any> {
+	console.debug("CALL TRACK BOUNDS", method, args);
+
+	if (!isAttached) {
+		throw "DevTool not attached to page!";
+	}
+
+	return	api.send(EVENT.TRACK_BOUNDS, {method, args, target: PAGES.CONTENT}).then((e) => {
+		if (e.error) {
+			throw e.error;
+		}
+
+		return e.result;
+	});
+}
+
+const devApi: IDevToolAPI = {
 	getStatus,
 	startCaptureLogs,
 	stopCaptureLogs,
 	tryConnect,
 	getAppInfo,
 	directCall,
+	//
+	trackBounds,
 };
 
 function _onPanelShow(panelContext: Window) {

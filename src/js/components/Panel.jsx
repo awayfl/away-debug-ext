@@ -22,11 +22,11 @@ const _TABS = [
 		name: "Info",
 		icon: undefined,
 	},
-	{
+	/*{
 		tab: Logger,
 		name: "Logger",
 		icon: undefined,
-	},
+	},*/
 	{
 		tab: NodeTree,
 		name: "Tree",
@@ -145,10 +145,7 @@ export class Panel extends Component {
 					return e;
 				})
 				.catch((error) => {
-					this.setState({
-						error,
-					});
-
+					this.fireError(error)
 					throw error;
 				});
 		};
@@ -157,6 +154,12 @@ export class Panel extends Component {
 		tab.onInit && tab.onInit(this._devApi);
 
 		this._runReconnection();
+	}
+
+	fireError(message) {
+		this.setState({
+			error: message,
+		});
 	}
 
 	// emited from dev provider
@@ -274,6 +277,7 @@ export class Panel extends Component {
 						devApi = {this._devApi}
 						ref = {active ? this.activeTab : undefined}
 						active = {active}
+						panel = {this}
 					/>
 				</Section>
 			);
