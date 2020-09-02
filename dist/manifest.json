@@ -11,13 +11,13 @@
   },
   "content_scripts": [
 	{
-	  "matches": ["*://localhost/*"],
+	  "matches": ["*://localhost/*", "*://127.0.0.1/*"],
 	  "js": ["js/content.js"]
 	}
   ],
-  "permissions": ["tabs", "*://localhost/*"],
+  "permissions": ["tabs", "*://localhost/*", "*://127.0.0.1/*"],
   "web_accessible_resources": ["js/page-api.js", "js/content.js"],
   "externally_connectable": {
-    "matches": ["*://localhost/*"]
+    "matches": ["*://localhost/*", "*://127.0.0.1/*"]
   }
 }
