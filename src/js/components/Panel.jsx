@@ -88,8 +88,8 @@ export const Error = ({ title, message, onClose }) => {
 	return (
 		<ErrorBox className={!!message && "active"}>
 			<Close onClick={onClose}>clear</Close>
-			<h3>{title.toString()}</h3>
-			<p>{message.toString()}</p>
+			<h3>{ title ? title.toString() : ""}</h3>
+			<p>{ message ?  message.toString() : ""}</p>
 		</ErrorBox>
 	);
 };
@@ -160,6 +160,8 @@ export class Panel extends Component {
 		this.setState({
 			error: message,
 		});
+
+		console.error("ERROR", message);
 	}
 
 	// emited from dev provider
