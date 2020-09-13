@@ -149,7 +149,7 @@ declare global {
 					return answer({ error: "Unknow stage!" });
 				}
 
-				const request = () => AWAY_DEBUG.getNodeTree(true, 0, true);
+				const request = () => AWAY_DEBUG.getNodeTree(false, 0, true);
 				bbox.init(canvas, request, args);
 
 				return answer({ ok: true });

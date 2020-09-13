@@ -86,10 +86,10 @@ const Close = styled(Icon)`
 
 export const Error = ({ title, message, onClose }) => {
 	return (
-		<ErrorBox className={message && "active"}>
+		<ErrorBox className={!!message && "active"}>
 			<Close onClick={onClose}>clear</Close>
-			<h3>{title}</h3>
-			<p>{message}</p>
+			<h3>{title.toString()}</h3>
+			<p>{message.toString()}</p>
 		</ErrorBox>
 	);
 };

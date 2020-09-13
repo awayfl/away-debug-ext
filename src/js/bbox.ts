@@ -7,9 +7,11 @@ export interface INode {
 		height: number;
 	};
 	visible: boolean;
+	globalVisible: boolean;
 	selected?: boolean;
 	name: string;
 	color?: string;
+	children: INode[];
 }
 
 export class BboxRenderer {
@@ -58,6 +60,47 @@ export class BboxRenderer {
 		this.redraw();
 	}
 
+	drawNode(node: INode) {
+		const ctx = this.ctx;
+
+		if(!node.rect || !node.visible) {
+			return;
+		}
+		if (node.color) {
+			ctx.strokeStyle = node.color;
+		}
+
+		if (node.selected) {
+			ctx.lineWidth = this.options.thinkness * 2;
+		}
+
+		const { x, y, width, height } = node.rect;
+
+		ctx.strokeRect(x, y, width, height);
+
+		if (this.options.drawNames) {
+			ctx.fillText(
+				`${node.name}, ${node.id}`,
+				x + 4,
+				y + 16,
+				width - 4
+			);
+		}
+
+		if (node.color) {
+			ctx.strokeStyle = this.options.defaultColor;
+		}
+
+		if (node.selected) {
+			ctx.lineWidth = this.options.thinkness;
+		}
+
+		if(node.children && node.children.length > 0) {
+			for(const c of node.children)
+				this.drawNode(c);
+		}
+	}
+
 	redraw() {
 		if (!this.canvas) {
 			return;
@@ -74,38 +117,7 @@ export class BboxRenderer {
 		ctx.font = "12px sans";
 
 		for (const node of nodes) {
-
-			if(!node.rect || !node.visible) {
-				continue;
-			}
-			if (node.color) {
-				ctx.strokeStyle = node.color;
-			}
-
-			if (node.selected) {
-				ctx.lineWidth = this.options.thinkness * 2;
-			}
-
-			const { x, y, width, height } = node.rect;
-
-			ctx.strokeRect(x, y, width, height);
-
-			if (this.options.drawNames) {
-				ctx.fillText(
-					`${node.name}, ${node.id}`,
-					x + 4,
-					y + 16,
-					width - 4
-				);
-			}
-
-			if (node.color) {
-				ctx.strokeStyle = this.options.defaultColor;
-			}
-
-			if (node.selected) {
-				ctx.lineWidth = this.options.thinkness;
-			}
+			this.drawNode(node);
 		}
 
 		requestAnimationFrame(this.redraw);
