@@ -320,10 +320,14 @@ export class Panel extends Component {
 			}
 		}
 
+		const error = typeof this.state.error === 'string' 
+			? this.state.error 
+			: JSON.stringify(this.state.error);
+
 		return (
 			<Fragment>
 				<Error
-					message={this.state.error}
+					message={ error }
 					title="ERROR"
 					onClose={() => this.onCloseError()}
 				/>

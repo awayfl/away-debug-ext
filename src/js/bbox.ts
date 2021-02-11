@@ -18,7 +18,8 @@ export class BboxRenderer {
 	options = {
 		drawNames: true,
 		thinkness: 2,
-		defaultColor: "#00ff00"
+		defaultColor: "#00ff00",
+		trackedIds: []
 	};
 
 	nodeRequiestMethod: () => Array<INode>;
@@ -27,6 +28,10 @@ export class BboxRenderer {
 	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
 	loop: boolean = false;
+
+	constructor() {
+		this.redraw = this.redraw.bind(this);
+	}
 
 	init(follow: Element, request: () => Array<INode>, options = {}) {
 		const canvas: HTMLCanvasElement =
@@ -44,7 +49,8 @@ export class BboxRenderer {
 		this.options = Object.assign({
 			drawNames: true,
 			thinkness: 2,
-			defaultColor: "#00ff00"
+			defaultColor: "#00ff00",
+			trackedIds: null,
 		}, options);
 
 		this.canvas = canvas;
@@ -56,7 +62,6 @@ export class BboxRenderer {
 
 		this.nodeRequiestMethod = request;
 
-		this.redraw = this.redraw.bind(this);
 		this.redraw();
 	}
 
@@ -70,29 +75,35 @@ export class BboxRenderer {
 			ctx.strokeStyle = node.color;
 		}
 
-		if (node.selected) {
-			ctx.lineWidth = this.options.thinkness * 2;
-		}
+		
+		if (
+			!this.options.trackedIds || 
+			this.options.trackedIds.indexOf(node.id) > -1
+		) {
+			if (node.selected) {
+				ctx.lineWidth = this.options.thinkness * 2;
+			}
 
-		const { x, y, width, height } = node.rect;
+			const { x, y, width, height } = node.rect;
 
-		ctx.strokeRect(x, y, width, height);
+			ctx.strokeRect(x, y, width, height);
 
-		if (this.options.drawNames) {
-			ctx.fillText(
-				`${node.name}, ${node.id}`,
-				x + 4,
-				y + 16,
-				width - 4
-			);
-		}
+			if (this.options.drawNames) {
+				ctx.fillText(
+					`${node.name}, ${node.id}`,
+					x + 4,
+					y + 16,
+					width - 4
+				);
+			}
 
-		if (node.color) {
-			ctx.strokeStyle = this.options.defaultColor;
-		}
+			if (node.color) {
+				ctx.strokeStyle = this.options.defaultColor;
+			}
 
-		if (node.selected) {
-			ctx.lineWidth = this.options.thinkness;
+			if (node.selected) {
+				ctx.lineWidth = this.options.thinkness;
+			}
 		}
 
 		if(node.children && node.children.length > 0) {

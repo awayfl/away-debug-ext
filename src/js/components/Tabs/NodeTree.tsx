@@ -128,7 +128,8 @@ interface INodeItem {
 	name: string;
 	id: number;
 	index: number;
-	items: INodeItem[];
+	children: INodeItem[];
+	state: {open: boolean, willOpen: boolean};
 }
 
 const MenyBox = styled.div<{ x: number; y: number; active: boolean }>`
@@ -190,6 +191,7 @@ interface IState {
 	watched: boolean;
 	boundsTracked: boolean;
 	height: number;
+	forceUpdateID: number;
 }
 
 interface IProp {
@@ -219,6 +221,8 @@ export class NodeTree extends Component<IProp, IState> {
 	itemsContextMenu: IContextMenu;
 	active: boolean = false;
 	wathInterval: number = null;
+	trackedIds: number[] = [];
+	trackedSet: Set<number> = new Set();
 
 	constructor(props: IProp) {
 		super(props);
@@ -231,7 +235,8 @@ export class NodeTree extends Component<IProp, IState> {
 			contextMenuItems: {},
 			contextMenuActive: false,
 			contextMenuPos: { x: 0, y: 0 },
-			contextMenuHandler: (e: string, other: any) => e,
+			contextMenuHandler: (e: string, _other: any) => e,
+			forceUpdateID: 0
 		};
 
 		this.createContextMenu = this.createContextMenu.bind(this);
@@ -255,6 +260,8 @@ export class NodeTree extends Component<IProp, IState> {
 				height: this.treeWrap.current.offsetHeight,
 			}));
 		});
+
+		this.trackedIds = [];
 
 		this.wathInterval = null;
 	}
@@ -312,7 +319,7 @@ export class NodeTree extends Component<IProp, IState> {
 		});
 	}
 
-	doObjectMethodCall(method: OBJECT_METHODS, node: any, ...args: any[]) {
+	doObjectMethodCall(method: OBJECT_METHODS, node: any, ..._args: any[]) {
 		const ids = this._getNodePath(node);
 		switch (method) {
 			case OBJECT_METHODS.EXPOSE: {
@@ -392,19 +399,101 @@ export class NodeTree extends Component<IProp, IState> {
 		});
 	}
 
-	doTrackBounds() {
-		const b = this.state.boundsTracked;
+	_flatTree(next: INodeItem, result = []) {
+		result.push(next);
 
-		if (b) {
+		if (!next.children) {
+			return result;
+		}
+
+		for(const node of next.children) {
+			this._flatTree(node, result);
+		}
+
+		return result;
+	}
+
+	doTrackBounds(node?: INodeItem) {
+		const isTracked = this.state.boundsTracked;
+
+		if (isTracked && !node) {
 			this._devAPI.trackBounds("dispose", {});
 
+			this.trackedSet.clear();
 			this.setState({
 				boundsTracked: false,
 			});
-		} else {
+
+			return;
+		}
+
+		if (isTracked && node) {
+			this._devAPI.trackBounds("dispose", {});
+
+			let remove = this.trackedSet.has(node.id);
+
+			if (remove) {
+				this.trackedSet.delete(node.id);
+			} else {
+				this.trackedSet.add(node.id);
+			}
+
+			if (node.state.open || node.state.willOpen) {
+				this._flatTree(node).forEach((e) => {
+					if (remove) {
+						this.trackedSet.delete(e.id);
+					} else {
+						this.trackedSet.add(e.id);
+					}
+				});
+			}
+
+			if (this.trackedSet.size === 0) {
+				this.setState({
+					boundsTracked: false,
+				});
+				return;
+			}
+
 			this._devAPI
-				.trackBounds("init", {})
-				.then((e) => {
+				.trackBounds("init", {
+					trackedIds: [...this.trackedSet], 
+				})
+				.then((_e) => {
+					this.setState({
+						boundsTracked: true,
+						forceUpdateID: this.state.forceUpdateID + 1
+					});
+				})
+				.catch((error) => {
+					this.props.panel.fireError(error);
+				});
+
+			return;
+		}
+
+		if (!isTracked) {
+			
+			let trackedIds: number[];
+			
+			if (node) {
+				if (node.state.open) {
+					trackedIds = this._flatTree(node ||this.state.tree).map((e) => e.id);
+				} else {
+					trackedIds = [node.id];
+				}
+
+			} else {
+				trackedIds = this._flatTree(node ||this.state.tree).map((e) => e.id)
+			}
+
+			this.trackedSet = new Set(trackedIds);
+
+			this._devAPI
+				.trackBounds("init", {
+					trackedIds
+				})
+				.then((_e) => {
 					this.setState({
 						boundsTracked: true,
 					});
@@ -451,7 +540,7 @@ export class NodeTree extends Component<IProp, IState> {
 			<TreeNode
 				selected={node.state.selected}
 				depth={node.state.depth}
-				onClick={(event) => {
+				onClick={(_event) => {
 					tree.selectNode(node);
 					//trigNode();
 				}}
@@ -470,8 +559,17 @@ export class NodeTree extends Component<IProp, IState> {
 					<Label>id:</Label>
 					<span>{node.id}</span>
 
+					<Blink
+						className = {
+							`last clickable ${ this.trackedSet.has(node.id) ? 'blink' : ''}`
+						}
+						onClick={() => this.doTrackBounds(node)}
+					>
+						{this.trackedSet.has(node.id) ? "grid_on" : "grid_off"}
+					</Blink>
+
 					<Icon
-						className={"last clickable"}
+						className={"clickable"}
 						onClick={() =>
 							this.doObjectMethodCall(
 								node.visible
