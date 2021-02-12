@@ -177,11 +177,11 @@ async function directCall(method: string, args: any[] = []): Promise<any> {
 	console.debug("CALL DIRECT", method, args);
 
 	if (!isAttached) {
-		try {
-			await tryConnect();
-		} catch {
+		//try {
+		//	await tryConnect();
+		//} catch {
 			throw "DevTool not attached to page!";
-		}
+		//}
 	}
 
 	return api
@@ -200,11 +200,11 @@ async function trackBounds(method: string, args: any): Promise<any> {
 	console.debug("CALL TRACK BOUNDS", method, args);
 
 	if (!isAttached) {
-		try {
-			await tryConnect();
-		} catch {
+		//try {
+		//	await tryConnect();
+		//} catch {
 			throw "DevTool not attached to page!";
-		}
+		//}
 	}
 
 	return	api.send(EVENT.TRACK_BOUNDS, {method, args, target: PAGES.CONTENT}).then((e) => {
