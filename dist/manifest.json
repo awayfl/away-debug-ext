@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "AWAYFL Debug extension",
   "description": "AwayFL extension for debug AVM/AVM2 executions!",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "devtools_page": "devtools.html",
   "icons": {
     "16": "gfx/icon16.png",
@@ -11,13 +11,13 @@
   },
   "content_scripts": [
 	{
-	  "matches": ["*://localhost/*", "*://127.0.0.1/*"],
+	  "matches": ["*://localhost/*", "*://127.0.0.1/*", "*://awaystudios.com/*"],
 	  "js": ["js/content.js"]
 	}
   ],
-  "permissions": ["tabs", "*://localhost/*", "*://127.0.0.1/*"],
+  "permissions": ["tabs", "*://localhost/*", "*://127.0.0.1/*", "*://awaystudios.com/*"],
   "web_accessible_resources": ["js/page-api.js", "js/content.js"],
   "externally_connectable": {
-    "matches": ["*://localhost/*", "*://127.0.0.1/*"]
+    "matches": ["*://localhost/*", "*://127.0.0.1/*", "*://awaystudios.com/*"]
   }
 }
