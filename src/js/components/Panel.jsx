@@ -2,7 +2,7 @@ import "react-virtualized/styles.css";
 import styled from "styled-components";
 
 import React, { Component, Fragment, createRef } from "react";
-import { RolledIcon, Icon, Section } from "./elements/SectionItems.jsx";
+import { RolledIcon, Icon, Section, Blink } from "./elements/SectionItems.jsx";
 import { Button } from "./elements/Button.jsx";
 import { Logger } from "./Tabs/Logger.jsx";
 import { Main } from "./Tabs/Main.jsx";
@@ -32,13 +32,13 @@ const _TABS = [
 		name: "Tree",
 		icon: undefined,
 	},
-	
+	/*
 	{
 		tab: () => <div>Settings</div>,
 		name: "Settings",
 		icon: "settings",
 		align: "right",
-	},
+	},*/
 ];
 
 const Logo = styled.div`
@@ -104,7 +104,8 @@ export class Panel extends Component {
 			currentTab,
 			connection: CONNECTION_STATUS.OFFLINE,
 			attemts: 0,
-			error: "",
+			error: '',
+			playState: 'play'
 		};
 
 		/**
@@ -119,6 +120,8 @@ export class Panel extends Component {
 			detach: this.onDetach.bind(this),
 			emit: this.onEmit.bind(this),
 		};
+
+		window.addEventListener('keydown', this.onKeyDown.bind(this));
 	}
 
 	/**
@@ -142,6 +145,7 @@ export class Panel extends Component {
 		devApi.directCall = (...args) => {
 			return oldCall(...args)
 				.then((e) => {
+					console.log('direct call result:', e)
 					return e;
 				})
 				.catch((error) => {
@@ -190,6 +194,13 @@ export class Panel extends Component {
 		this.setState({
 			connection: CONNECTION_STATUS.ONLINE,
 			attemts: 0,
+			error: undefined
+		});
+
+		this._devApi.directCall('getRAFState').then((state) =>{
+			this.setState({
+				playState: state
+			});
 		});
 	}
 
@@ -209,6 +220,53 @@ export class Panel extends Component {
 	onCloseError() {
 		this.setState({
 			error: undefined,
+		});
+	}
+
+	/**
+	 * 
+	 * @param {KeyboardEvent} event 
+	 */
+	onKeyDown(event) {
+		if(event.code === 'Space') {
+			return this.setStopPlayState();
+		}
+
+		if(event.code === 'ArrowRight') {
+			return this.setNextPlaySate();
+		}
+	}
+
+	setStopPlayState() {
+		if(this.state.playState == 'stop') {
+			this.setRafState('play');
+			return;
+		}
+		
+		this.setRafState('stop');
+	}
+
+	setNextPlaySate() {
+		if(this.state.playState !== 'stop')
+			return;
+
+		this.setRafState('next');
+	}
+
+	setRafState(state = 'play') {
+		if (
+			!this._devApi ||
+			this.state.connection !== CONNECTION_STATUS.ONLINE
+		) {
+			return;
+		}
+
+		this._devApi.directCall('setRAFState', [state]).then((result)=>{
+			console.log(result);
+
+			this.setState({
+				playState: result
+			});
 		});
 	}
 
@@ -266,10 +324,10 @@ export class Panel extends Component {
 		const tabs = [];
 
 		const lastActiveTab = this.activeTab.current;
+		const locked = this.state.connection !== CONNECTION_STATUS.ONLINE;
 
 		_TABS.forEach(({ tab: Tab, icon, name, align }) => {
 			const active = this.state.currentTab === name;
-			const locked = this.state.connection !== CONNECTION_STATUS.ONLINE;
 			const className = `${active ? "active" : ""} ${ icon ? ('tiny ' + align) : ""}`;
 
 			tabs.push(
@@ -335,6 +393,18 @@ export class Panel extends Component {
 					<div className="nav-wrap">
 						<Logo />
 						{buttons}
+						<Button className = {`tiny right ${locked ? 'locked' : ''}`} onClick = {
+							() => this.setStopPlayState()
+						}>
+							<Blink className = {this.state.playState === 'stop' ? 'blink' : ''}>
+								pause_circle_filled
+							</Blink>
+						</Button>
+						<Button className = {`tiny ${locked ? 'locked' : ''}`} onClick = {
+							() => this.setNextPlaySate()
+						}>
+							<Icon>skip_next</Icon>
+						</Button>						
 					</div>
 					{Status}
 				</nav>

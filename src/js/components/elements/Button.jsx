@@ -20,10 +20,11 @@ export const Button = styled(Label)`
 
 	:active {
 		transform: scale(0.95);
+		background-color: #888;
 	}
 
 	&.tiny {
-		min-width: 48px;
+		min-width: 32px;
 	}
 	
 	&.right {
