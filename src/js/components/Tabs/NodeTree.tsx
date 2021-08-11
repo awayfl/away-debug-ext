@@ -162,14 +162,14 @@ const MenuItem = styled.div<{ active: boolean }>`
 		border: 1px solid #555;
 	}
 `;
-export const ContextMeny = ({ items = {}, pos, active, onItemClicked }) => {
-	const ritems = Object.keys(items).map((id: string) => {
-		const { title, enable = true } = items[id];
+export const ContextMeny = ({ items = [], pos, active, onItemClicked }) => {
+	const ritems = items.map((item, i) => {
+		const { title, enable = true, type } = item;
 		return (
 			<MenuItem
-				key={id}
-				onClick={() => onItemClicked(id)}
-				active={enable}
+				key={i}
+				onClick={() => onItemClicked(type)}
+				active={enable && type !== OBJECT_METHODS.DELEMITTER}
 			>
 				{title}
 			</MenuItem>
@@ -184,7 +184,7 @@ export const ContextMeny = ({ items = {}, pos, active, onItemClicked }) => {
 
 interface IState {
 	tree: INodeItem;
-	contextMenuItems: { [key: string]: { title: string; enable?: boolean } };
+	contextMenuItems: {title: string; enable?: boolean, type: string}[];
 	contextMenuActive: boolean;
 	contextMenuPos: { x: number; y: number };
 	contextMenuHandler: (e: string, other: any) => void;
@@ -202,16 +202,19 @@ interface IProp {
 }
 
 interface IContextMenu {
-	items: { [key: string]: { title: string; enable?: boolean } };
+	items: { title: string; enable?: boolean, type: string }[];
 	handler: (e: string, other: any) => void;
 	owner: any;
 }
 
 const enum OBJECT_METHODS {
+	DELEMITTER = 'delemitter',
 	HIDE = "hide",
 	SHOW = "show",
 	REMOVE = "remove",
 	EXPOSE = "expose",
+	INFO = "info",
+	HOWER = "hower"
 }
 
 export class NodeTree extends Component<IProp, IState> {
@@ -223,6 +226,7 @@ export class NodeTree extends Component<IProp, IState> {
 	wathInterval: number = null;
 	trackedIds: number[] = [];
 	trackedSet: Set<number> = new Set();
+	openedSet: Set<number> = new  Set();
 
 	constructor(props: IProp) {
 		super(props);
@@ -232,7 +236,7 @@ export class NodeTree extends Component<IProp, IState> {
 			boundsTracked: false,
 			height: 400,
 			tree: {} as INodeItem,
-			contextMenuItems: {},
+			contextMenuItems: [],
 			contextMenuActive: false,
 			contextMenuPos: { x: 0, y: 0 },
 			contextMenuHandler: (e: string, _other: any) => e,
@@ -244,12 +248,15 @@ export class NodeTree extends Component<IProp, IState> {
 		this._devAPI = props.devApi;
 
 		this.itemsContextMenu = {
-			items: {
-				[OBJECT_METHODS.EXPOSE]: { title: "Expose to Console" },
-				[OBJECT_METHODS.HIDE]: { title: "Hide node" },
-				[OBJECT_METHODS.SHOW]: { title: "Show node" },
-				[OBJECT_METHODS.REMOVE]: { title: "Remove from stage" },
-			},
+			items: [
+				{ title: "Expose to Console", type: OBJECT_METHODS.EXPOSE },
+				{ title: '------', type: OBJECT_METHODS.DELEMITTER },
+				{ title: "Hide node", type: OBJECT_METHODS.HIDE },
+				{ title: "Show node", type: OBJECT_METHODS.SHOW },
+				{ title: "Remove from stage", type: OBJECT_METHODS.REMOVE },
+				{ title: '------', type: OBJECT_METHODS.DELEMITTER },
+				{ title: "Object info", type: OBJECT_METHODS.INFO },				
+			],
 
 			handler: this.onItemContextMenu.bind(this),
 			owner: null,
@@ -369,9 +376,12 @@ export class NodeTree extends Component<IProp, IState> {
 		);
 
 		const items = contextDeclaration.items;
+		
+		const hide = items.find((e) => e.type == OBJECT_METHODS.HIDE);
+		const show = items.find((e) => e.type == OBJECT_METHODS.SHOW);
 
-		items[OBJECT_METHODS.HIDE].enable = contextDeclaration.owner.visible;
-		items[OBJECT_METHODS.SHOW].enable = !contextDeclaration.owner.visible;
+		hide.enable = contextDeclaration.owner.visible;
+		show.enable = !contextDeclaration.owner.visible;
 
 		this.setState({
 			contextMenuItems: items,
@@ -504,14 +514,10 @@ export class NodeTree extends Component<IProp, IState> {
 		}
 	}
 
-	_renderTree({ tree, node }) {
+	_renderTree = ({ tree, node }) => {
 		const hasChildren = node.hasChildren();
 
 		let toggleState = TogglState.NONE;
-
-		if (hasChildren) {
-			toggleState = node.state.open ? TogglState.OPEN : TogglState.CLOSE;
-		}
 
 		if (
 			node.parentId === 0 &&
@@ -520,13 +526,26 @@ export class NodeTree extends Component<IProp, IState> {
 		) {
 			tree.openNode(node);
 			node.state.willOpen = true;
+			this.openedSet.add(node.id);
+		}
+
+		if (this.openedSet.has(node.id)) {
+			tree.openNode(node);
+			node.state.willOpen = true;
+			console.log('Open node', node);
+		}
+
+		if (hasChildren) {
+			toggleState = node.state.open ? TogglState.OPEN : TogglState.CLOSE;
 		}
 
 		const trigNode = () => {
 			if (toggleState === TogglState.CLOSE) {
 				tree.openNode(node);
+				this.openedSet.add(node.id);
 			} else if (toggleState === TogglState.OPEN) {
 				tree.closeNode(node);
+				this.openedSet.delete(node.id);
 			}
 		};
 
