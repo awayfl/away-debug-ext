@@ -162,7 +162,7 @@ const MenuItem = styled.div<{ active: boolean }>`
 		border: 1px solid #555;
 	}
 `;
-export const ContextMeny = ({ items = [], pos, active, onItemClicked }) => {
+export const ContextMenu = ({ items = [], pos, active, onItemClicked }) => {
 	const ritems = items.map((item, i) => {
 		const { title, enable = true, type } = item;
 		return (
@@ -202,7 +202,7 @@ interface IProp {
 }
 
 interface IContextMenu {
-	items: { title: string; enable?: boolean, type: string }[];
+	items: { title: string; enable?: boolean, type: string, opts?: any }[];
 	handler: (e: string, other: any) => void;
 	owner: any;
 }
@@ -214,7 +214,10 @@ const enum OBJECT_METHODS {
 	REMOVE = "remove",
 	EXPOSE = "expose",
 	INFO = "info",
-	HOWER = "hower"
+	HOWER = "hower",
+	SCREEN = "screen",
+	SCREEN_ALPHA = "screen_alpha",
+	
 }
 
 export class NodeTree extends Component<IProp, IState> {
@@ -255,7 +258,9 @@ export class NodeTree extends Component<IProp, IState> {
 				{ title: "Show node", type: OBJECT_METHODS.SHOW },
 				{ title: "Remove from stage", type: OBJECT_METHODS.REMOVE },
 				{ title: '------', type: OBJECT_METHODS.DELEMITTER },
-				{ title: "Object info", type: OBJECT_METHODS.INFO },				
+				{ title: "Snap node", type: OBJECT_METHODS.SCREEN },
+				{ title: "Snap node (alpha)", type: OBJECT_METHODS.SCREEN_ALPHA },
+				
 			],
 
 			handler: this.onItemContextMenu.bind(this),
@@ -347,6 +352,16 @@ export class NodeTree extends Component<IProp, IState> {
 			case OBJECT_METHODS.REMOVE: {
 				this._devAPI.directCall("removeObjectByIds", [ids]);
 				this.treeView.current.tree.removeNode(node);
+				break;
+			}
+
+			case OBJECT_METHODS.SCREEN: {
+				this._devAPI.directCall('captureNode', [ids, false])
+				break;
+			}
+
+			case OBJECT_METHODS.SCREEN_ALPHA: {
+				this._devAPI.directCall('captureNode', [ids, true])
 				break;
 			}
 		}
@@ -667,7 +682,7 @@ export class NodeTree extends Component<IProp, IState> {
 					</div>
 					<NodeInfo></NodeInfo>
 				</Split>
-				<ContextMeny
+				<ContextMenu
 					pos={contextMenuPos}
 					active={contextMenuActive}
 					items={contextMenuItems}
